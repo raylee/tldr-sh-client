@@ -13,16 +13,16 @@ A fully-functional [bash](https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29) c
 `curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
 
 # Usage
-tldr [options] <command>
+	tldr [options] command
 
-[options]
-    -l, --list:     show all available pages
-    -u, --update:   update, force retrieving latest copies of index and <command>
-    -p, --platform: show page from specific platform rather than autodetecting
-    -h, -?:         this help overview
+	[options]
+		-l, --list:     show all available pages
+		-u, --update:   update, force retrieving latest copies of index and <command>
+		-p, --platform: show page from specific platform rather than autodetecting
+		-h, -?:         this help overview
 
-<command>
-    Show examples for this command
+	command
+		Show examples for this command
 
 The client caches a copy of all pages and the index locally under
 ~/.config/tldr. By default, the cached copies will expire in 14 days.
