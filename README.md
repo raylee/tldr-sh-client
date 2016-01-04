@@ -8,6 +8,10 @@ A fully-functional [bash](https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29) c
 	curl -o ~/bin/tldr https://raw.githubusercontent.com/raylee/tldr/master/tldr
 	chmod +x ~/bin/tldr
 
+Then make sure `~/bin` is in your `$PATH`. On OSX edit ~/.bash_profile (or ~/.bashrc on Linux), and add the following line to the bottom of the file:
+
+	export PATH=~/bin:$PATH
+
 # Prerequisites
 
 `curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
