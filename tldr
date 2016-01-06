@@ -23,6 +23,9 @@ config() {
     cache_days=14
     force_update=''
 
+    #check if config folder exists, otherwise create it
+    [ -d "$configdir" ] || mkdir -p "$configdir"
+
     [ ! -f $index ] && update_index
     auto_update_index
 }
