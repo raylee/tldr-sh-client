@@ -7,18 +7,18 @@ set -uf -o pipefail
 # initialize globals, sanity check the environment, etc.
 config() {
     init_term_cmds
-    
+
     if [ -z $(which curl) ]; then
         echo "${red}tldr requires \`curl\` installed in your path$reset"
         exit 1
     fi
-    
+
     configdir=~/.tldr
     [ -d ~/.config ] && configdir=~/.config/tldr
 
     platform=$(get_platform)
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
-    index_url="$base_url/index.json"
+    index_url="http://tldr-pages.github.io/assets/index.json"
     index="$configdir/index.json"
     cache_days=14
     force_update=''
@@ -49,16 +49,16 @@ auto_update_index() {
 # function contents via http://mywiki.wooledge.org/BashFAQ/037
 init_term_cmds() {
     # only set if we're on an interactive session
-    [[ -t 2 ]] && { 
+    [[ -t 2 ]] && {
         reset=$(    tput sgr0   || tput me      ) # Reset cursor
         bold=$(     tput bold   || tput md      ) # Start bold
         under=$(    tput smul   || tput us      ) # Start underline
         italic=$(   tput sitm   || tput ZH      ) # Start italic
         eitalic=$(  tput ritm   || tput ZH      ) # End italic
-        default=$(  tput op                     )                                                                                                                                                                   
+        default=$(  tput op                     )
         back=$'\b'
 
-        [[ $TERM != *-m ]] && { 
+        [[ $TERM != *-m ]] && {
             black=$(    tput setaf 0 || tput AF 0    )
             red=$(      tput setaf 1 || tput AF 1    )
             green=$(    tput setaf 2 || tput AF 2    )
@@ -120,7 +120,7 @@ display_tldr() {
     # last line even if it doesn't have a newline at the end
     while IFS= read -r line || [[ -n "$line" ]]; do
         start=${line:0:1}           # get the first character
-        case "$start" in 
+        case "$start" in
             '#') heading "$line"
                 ;;
             '>') quotation "$line"
@@ -137,9 +137,9 @@ display_tldr() {
 
 # convert the local platorm name to tldr's version
 get_platform() {
-    case `uname -s` in 
-        Darwin) echo "osx"    ;; 
-        Linux)  echo "linux"  ;; 
+    case `uname -s` in
+        Darwin) echo "osx"    ;;
+        Linux)  echo "linux"  ;;
         SunOS)  echo "sunos"  ;;
         *)      echo "common" ;;
     esac
