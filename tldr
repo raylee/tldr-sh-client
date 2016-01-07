@@ -208,7 +208,7 @@ do
     case "$1" in
         -l|--list)
             >&2 echo -e "Known tldr pages: \n"
-            tr '{' '\n' < ~/.config/tldr/index.json | cut -d '"' -f4 | column
+            tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | column
             exit 0
             ;;
         -u|--update)
