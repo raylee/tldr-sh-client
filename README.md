@@ -20,10 +20,10 @@ Then make sure `~/bin` is in your `$PATH`. On OSX edit ~/.bash_profile (or ~/.ba
 	tldr [options] command
 
 	[options]
-		-l, --list:     show all available pages
-		-u, --update:   update, force retrieving latest copies of index and <command>
-		-p, --platform: show page from specific platform rather than autodetecting
-		-h, -?:         this help overview
+		-l, --list:      show all available pages
+		-p, --platform:  show page from specific platform rather than autodetecting
+		-u, --update:    update, force retrieving latest copies of index and <command>
+		-h, -?, --help:  this help overview
 
 	command
 		Show examples for this command
