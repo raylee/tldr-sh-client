@@ -96,7 +96,7 @@ quotation() {
 
 list_item() {
     local line="$*"
-    echo "$line$reset"
+    echo "$bold$line$reset"
 }
 
 code() {
@@ -108,7 +108,7 @@ code() {
     line=${line//\{\{/$italic}
     line=${line//\}\}/$eitalic}
 
-    echo "$bold$line$reset"
+    echo "    $line$reset"
 }
 
 text() {
