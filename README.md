@@ -1,35 +1,55 @@
 A fully-functional [bash](https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29) client for [tldr](https://github.com/rprieto/tldr/). This version aims to be the easiest and smallest to set up on a new account, without sacrificing any features.
 
-![tldr screenshot](Screenshot.png?raw=true)
+![tldr screenshot](screenshot.png?raw=true)
 
 # Setup
 
-	mkdir -p ~/bin
-	curl -o ~/bin/tldr https://raw.githubusercontent.com/raylee/tldr/master/tldr
-	chmod +x ~/bin/tldr
+`wget -qO- https://raw.githubusercontent.com/DFabric/DPlatform-ShellCore/master/install.sh | sh`
 
-Then make sure `~/bin` is in your `$PATH`. On OSX edit ~/.bash_profile (or ~/.bashrc on Linux), and add the following line to the bottom of the file:
+or
 
-	export PATH=~/bin:$PATH
+`curl -o- https://raw.githubusercontent.com/DFabric/DPlatform-ShellCore/master/install.sh | sh`
+
+### If you want to install `tldr` manually
+
+```
+mkdir -p ~/.tldr/cache
+
+wget -qO ~/.tldr/tldr.sh https://raw.githubusercontent.com/raylee/tldr/master/tldr.sh
+
+# or at your choice
+curl -o ~/.tldr/tldr.sh https://raw.githubusercontent.com/raylee/tldr/master/tldr.sh
+```
+
+Finally add `alias tldr=$HOME/.tldr/tldr.sh` to favorite Shell init file (For example for Bash on macOS ~/.bash_profile and ~/.bashrc on Linux, ~/.zshrc for Zsh)
 
 # Prerequisites
 
-`curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
+`wget` or `curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
 
 # Usage
-	tldr [options] command
 
-	[options]
-		-l, --list:      show all available pages
-		-p, --platform:  show page from specific platform rather than autodetecting
-		-u, --update:    update, force retrieving latest copies of index and <command>
-		-h, -?, --help:  this help overview
+```
+	USAGE: tldr command [options]
 
-	command
-		Show examples for this command
+	Options:
+
+		-h, -?, --help:       This help overview
+		-d, --download        Download all tldr pages to the cache
+		-l, --list:           Show all available pages
+		-p, --platform:       Show page from specific platform rather than autodetecting
+		-u, --update:         Update, force retrieving latest copies of locally cached files
+		-c, --clear-cache     Clear the local cache
+
+	Example:
+		To show the tldr page of tar with use examples:
+
+		$ tldr tar
+		$ tldr -p linux tar
+```
 
 The client caches a copy of all pages and the index locally under
-~/.config/tldr. By default, the cached copies will expire in 14 days.
+~/.tldr. By default, the cached copies will expire in 14 days.
 
 # Contributing
 
