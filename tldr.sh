@@ -9,7 +9,7 @@
 config() {
     init_term_cmds
 
-    if [ -z $(which wget) ] || [ -z $(which curl) ]; then
+    if [ hash wget 2>/dev/null ] || [ hash curl 2>/dev/null ]; then
         echo "${red}tldr requires  \`wget\` or \`curl\` installed in your path$reset"
         exit 1
     fi
@@ -187,7 +187,7 @@ parse() {
   name=${pindex%%\"*}
   get_tldr $name parse
   echo "$cyan$name$reset tldr page downloaded"
-  [ ${#pindex} = 31 ] && echo "${red}All pages download to the cache$reset" || parse
+  [ ${#pindex} = 31 ] && printf "\n${red}All pages downloaded to the cache$reset\n" && exit 0 || parse
 }
 
 usage() {
@@ -240,14 +240,16 @@ do
             platform=$1
             ;;
         -u|--update)
-            printf "tldr updated to its newest version\n" && download ~/.tldr/tldr.sh https://raw.githubusercontent.com/raylee/tldr/master/tldr.sh
+            download ~/.tldr/tldr.sh https://raw.githubusercontent.com/raylee/tldr/master/tldr.sh
+            printf "${red}tldr updated to its newest version$reset\n"
+            exit 0
             ;;
         -r|--refresh)
             force_update=yes
             update_index
             ;;
         -c|--clear)
-            printf "Cache cleared!\n" && rm -rf $configdir/*
+            rm -rf $configdir/* && printf "Cache cleared!\n"
             update_index
             ;;
         -*)
