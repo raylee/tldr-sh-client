@@ -14,7 +14,8 @@ config() {
         exit 1
     fi
 
-    configdir=~/.tldr/cache
+    # Cache files to the cache folder in the current directory
+    configdir=$(cd -P $(dirname $0) && pwd)/cache
 
     platform=$(get_platform)
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
@@ -268,7 +269,7 @@ tldr="$(get_tldr $page)"
 
 if [ -z "$tldr" ]; then
     printf "tldr page for command $page not found
-Try updating with \"tldr --update\", or submit a pull request to:
+Try refreshing the cache with \"tldr --refresh\", or submit a pull request to:
 https://github.com/tldr-pages/tldr\n"
     exit 1
 fi
