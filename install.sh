@@ -8,7 +8,7 @@ download() {
 }
 
 # Download tldr.sh and index.json
-download ~/.tldr/tldr.sh https://raw.githubusercontent.com/raylee/tldr/master/tldr.sh
+download ~/.tldr/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
 download ~/.tldr/cache/index.json http://tldr-pages.github.io/assets/index.json
 
 # Make tldr.sh executable

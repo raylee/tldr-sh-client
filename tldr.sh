@@ -10,7 +10,7 @@ config() {
     init_term_cmds
 
     if [ hash wget 2>/dev/null ] || [ hash curl 2>/dev/null ]; then
-        echo "${red}tldr requires  \`wget\` or \`curl\` installed in your path$reset"
+        echo "${red}tldr requires 'wget' or 'curl' installed in your path$reset"
         exit 1
     fi
 
@@ -241,7 +241,7 @@ do
             platform=$1
             ;;
         -u|--update)
-            download ~/.tldr/tldr.sh https://raw.githubusercontent.com/raylee/tldr/master/tldr.sh
+            download ../$configdir/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
             printf "${red}tldr updated to its newest version$reset\n"
             exit 0
             ;;
