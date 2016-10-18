@@ -14,18 +14,15 @@ config() {
         exit 1
     fi
 
-    # Cache files to the cache folder in the current directory
-    configdir=$(cd -P $(dirname $0) && pwd)/cache
-
-    platform=$(get_platform)
+    os=$(get_os)
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
     index_url="http://tldr-pages.github.io/assets/index.json"
-    index="$configdir/index.json"
+    index="$cachedir/index.json"
     cache_days=14
     force_update=
 
     #check if config folder exists, otherwise create it
-    [ -d "$configdir" ] || mkdir -p "$configdir"
+    [ -d "$cachedir" ] || mkdir -p "$cachedir"
 
     [ ! -f $index ] && update_index || auto_update_index
 }
@@ -35,7 +32,7 @@ download() {
 }
 
 update_index() {
-  download "$index" "$index_url" || echo "Could not download index from $index_url" && exit 1
+  download "$index" "$index_url" || { echo "Could not download index from $index_url"; exit 1; }
 }
 
 # if the file exists and is more recent than $cache_days old
@@ -79,7 +76,7 @@ init_term_cmds() {
 
     # osx's termcap doesn't have italics. The below adds support for iTerm2
     # and is harmless on Terminal.app
-    [ "$(get_platform)" = "osx" ] && {
+    [ "$(get_os)" = "osx" ] && {
         italic=$(printf "\033[3m")
         eitalic=$(printf "\033[23m")
     }
@@ -102,9 +99,8 @@ list_item() {
 
 code() {
     local line="$*"
-    # I'm sure there's a better way to strip the first and last characters.
     line="${line#?}"
-    line="${line%\`}"
+    line="${line%?}"
     # convert {{variable}} to italics
     # Check if the shell support buil-in substitutions
     (${a//}) 2>/dev/null && line=${line//\{\{/$reset$white} || { hash sed 2>/dev/null && line="$(printf "$line" | sed "s/{{/$reset$white/g" )"; }
@@ -142,8 +138,8 @@ display_tldr() {
     done
 }
 
-# convert the local platorm name to tldr's version
-get_platform() {
+# convert the local os name to tldr's version
+get_os() {
     case $(uname -s) in
         Darwin) echo "osx"    ;;
         Linux)  echo "linux"  ;;
@@ -152,21 +148,21 @@ get_platform() {
     esac
 }
 
-# extract the platform key from index.json, return preferred subpath to tldrpage
+# extract the os key from index.json, return preferred subpath to tldrpage
 path_for_cmd() {
     local desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
-    # results in, eg, "name":"netstat","platform":["linux","osx"]},
+    # results in, eg, "name":"netstat","os":["linux","osx"]},
 
     [ -z "$desc" ] && return
 
-    # use the platform specific version of the tldr first
+    # use the os specific version of the tldr first
     case "$desc" in
-      *$platform*) echo "$platform/$1.md";;
+      *$os*) echo "$os/$1.md";;
       *common*) echo "common/$1.md";;
       *)
         # take the first one so we can show something, but warn the user
         local p=$(echo "$desc" | cut -d '"' -f 8)
-        >&2 printf "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
+        >&2 printf "${red}tldr page $1 not found in $os or common, using page from os $p instead$reset\n"
         echo "$p/$1.md";;
     esac
 }
@@ -174,11 +170,20 @@ path_for_cmd() {
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
     local p="$(path_for_cmd $1)"
-    cached="$configdir/$p"
-    recent "$cached" || { mkdir -p $(dirname $cached); download "$cached" "$base_url/$p"; }
+    cached="$cachedir/$p"
+    recent "$cached" || {
+      mkdir -p $(dirname $cached)
+      download "$cached" "$base_url/$p"
+    }
     # if the download failed for some reason, keep cat from whinging
     [ ! "$2" ] && cat "$cached" 2>/dev/null
 }
+
+# Cache files to an eitherpermanent or temporary cache directory
+case "$*" in
+  *-p*|*--portable*) cachedir=/tmp/tldr;;
+  *) cachedir=~/.cache/tldr;;
+esac
 
 config
 
@@ -199,13 +204,15 @@ usage() {
 
   Options:
 
-    -h, -?, --help        This help overview
-    -d, --download        Download all tldr pages to the cache
-    -l, --list:           Show all available pages
-    -p, --platform        Show page from specific platform rather than autodetecting
-    -u, --update          Update tldr to its newest version
-    -r, --refresh         Refresh locally cached files by retrieving their latest copies
-    -c, --clear           Clear the local cache
+    -h, -?, --help             This help overview
+    -d, --download             Download all tldr pages to the cache
+    -l, --list:                Show all available pages
+    -p, --portable             Portable mode with temporary cache
+    -u, --update               Update tldr to its newest version
+    -r, --refresh              Refresh locally cached files by retrieving their latest copies
+    -c, --clear                Clear the local cache
+    -o, --os [type]            Override the operating system [linux, osx, sunos]
+    --linux, --osx, --sunos    Override the operating system with Linux, OSX or SunOS
 
   Example:
     To show the tldr page of tar with use examples:
@@ -215,7 +222,7 @@ usage() {
 
 
   The client caches a copy of all pages and the index locally under
-  $configdir. By default, the cached copies will expire in $cache_days days.
+  $cachedir. By default, the cached copies will expire in $cache_days days.
 
 EOF
 exit 0
@@ -228,33 +235,33 @@ do
             usage
             ;;
         -d|--download)
-            pindex=$(cat $configdir/index.json)
+            pindex=$(cat $cachedir/index.json)
             parse
             ;;
         -l|--list)
             >&2 printf "Known tldr pages: \n"
-            tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4
+            tr '{' '\n' < "$cachedir/index.json" | cut -d '"' -f4
             exit 0
             ;;
-        -p|--platform)
+        -o|--os)
             shift
-            platform=$1
+            os=$1
             ;;
         -u|--update)
-            download ../$configdir/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
+            download ../$cachedir/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
             printf "${red}tldr updated to its newest version$reset\n"
             exit 0
             ;;
         -r|--refresh)
-            force_update=yes
+            force_update=1
             update_index
             ;;
         -c|--clear)
-            rm -rf $configdir/* && printf "Cache cleared!\n"
+            rm -rf $cachedir/* && printf "Cache cleared!\n"
             update_index
             ;;
-        -*)
-            usage
+        --linux|--osx|--sunos)
+            os=${1#??}
             ;;
         *)
             page=${1:-''}
