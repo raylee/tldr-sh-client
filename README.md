@@ -4,27 +4,22 @@ A fully-functional portable [Unix shell](https://en.wikipedia.org/wiki/Unix_shel
 
 # Setup
 
-`wget -qO- https://raw.githubusercontent.com/j8r/tldr/master/install.sh | sh`
-
-or
-
-`curl -o- https://raw.githubusercontent.com/j8r/tldr/master/install.sh | sh`
-
-### If you want to install `tldr` manually
+First download `tldr` where you like.
+We recommend to download the `tldr` to `/usr/local/bin` and make it executable
 
 ```
-mkdir -p ~/.tldr/cach		# Or any directory you want
-
-wget -qO ~/.tldr/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
-
-# or at your choice
-curl -o ~/.tldr/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
-
-# make it executable
-chmod +x tldr.sh
+wget -qO ~/.tldr/tldr https://raw.githubusercontent.com/j8r/tldr/master/tldr
+chmod +x tldr
 ```
 
-Finally add an alias with the path where the `tldr.sh` file is located, the default is `alias tldr=$HOME/.tldr/tldr.sh` to your favorite shell's init file (For example for Bash on macOS ~/.bash_profile and ~/.bashrc on Linux, ~/.zshrc for Zsh)
+or at your choice
+
+```
+curl -o ~/.tldr/tldr https://raw.githubusercontent.com/j8r/tldr/master/tldr
+chmod +x tldr
+```
+
+Optional: If `tldr` isn't in a `bin` system directory, you can find useful to add an alias to `tldr` in your shell init file with `tldr -a`.
 
 # Usage
 
@@ -33,13 +28,16 @@ Finally add an alias with the path where the `tldr.sh` file is located, the defa
 
 	Options:
 
-		-h, -?, --help        This help overview
-		-d, --download        Download all tldr pages to the cache
-		-l, --list:           Show all available pages
-		-p, --platform        Show page from specific platform rather than autodetecting
-		-u, --update          Update tldr to its newest version
-		-r, --refresh         Refresh locally cached files by retrieving their latest copies
-		-c, --clear           Clear the local cache
+		-h, -?, --help             This help overview
+		-d, --download             Download all tldr pages to the cache
+	  -l, --list:                Show all available pages
+	  -p, --portable             Portable mode with temporary cache
+	  -u, --update               Update tldr to its newest version
+		-r, --refresh              Refresh locally cached files by retrieving their latest copies
+		-c, --clear                Clear the local cache
+		-a, --add-alias            Add a tldr alias to your shell init file
+		-o, --os [type]            Override the operating system [linux, osx, sunos]
+		--linux, --osx, --sunos    Override the operating system with Linux, OSX or SunOS
 
 	Example:
 		To show the tldr page of tar with use examples:
@@ -48,7 +46,7 @@ Finally add an alias with the path where the `tldr.sh` file is located, the defa
 		$ tldr -p linux tar
 ```
 
-The client caches a copy of all pages and the index locally under `~/.tldr/cache` (or the `cache` folder in the directory you put `tldr.sh`) by default.
+The client caches a copy of the tldr page and the index locally under `~/.cache/tldr` (or the `/tmp/tldr` in portable mode) by default.
 
 By default, the cached copies will expire in 14 days.
 
@@ -56,9 +54,7 @@ By default, the cached copies will expire in 14 days.
 
 You need at least ether `wget` or `curl`. The last appears to be faster.
 
-Note that the script `tldr.sh` is a POSIX-compliant script. This means you can run it with any POSIX shell like `sh`, `dash`, `ksh`, `zsh`, `bash`...
-
-`tldr.sh` is also portable. No matter where you drop the file/its folder or from where you execute it, tldr will works and create/use its cache folder from its directory.
+Note that the script `tldr` is a POSIX compliant script, portable across UNIX systems. This means you can run it on any machine with a POSIX shell like `bash`, `zsh`, `sh`, `dash`, `ksh`...
 
 # Contributing
 

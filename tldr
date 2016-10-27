@@ -211,6 +211,7 @@ usage() {
     -u, --update               Update tldr to its newest version
     -r, --refresh              Refresh locally cached files by retrieving their latest copies
     -c, --clear                Clear the local cache
+    -a, --add-alias            Add a tldr alias to your shell init file
     -o, --os [type]            Override the operating system [linux, osx, sunos]
     --linux, --osx, --sunos    Override the operating system with Linux, OSX or SunOS
 
@@ -243,10 +244,6 @@ do
             tr '{' '\n' < "$cachedir/index.json" | cut -d '"' -f4
             exit 0
             ;;
-        -o|--os)
-            shift
-            os=$1
-            ;;
         -u|--update)
             download ../$cachedir/tldr.sh https://raw.githubusercontent.com/j8r/tldr/master/tldr.sh
             printf "${red}tldr updated to its newest version$reset\n"
@@ -259,6 +256,20 @@ do
         -c|--clear)
             rm -rf $cachedir/* && printf "Cache cleared!\n"
             update_index
+            ;;
+        -a|--add-alias)
+          add_alias() {
+            grep -q "alias tldr=$0" ~/.$1 || printf "\nalias tldr=$0\n" >> ~/.$1 && printf "tldr alias added to $1\n"
+          }
+          [ -e ~/.bashrc ] && add_alias bashrc
+          [ -e ~/.bash_profile ] && add_alias bash_profile
+          [ -e ~/.zshrc ] && add_alias zshrc
+          [ ! -e ~/.bashrc ] && [ ! -e ~/.bash_profile ] && [ ! -e ~/.zshrc ] && [ -e ~/.profile ] && add_alias profile
+          exit 0
+            ;;
+        -o|--os)
+            shift
+            os=$1
             ;;
         --linux|--osx|--sunos)
             os=${1#??}
