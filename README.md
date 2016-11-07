@@ -7,15 +7,21 @@ A fully-functional portable [Unix shell](https://en.wikipedia.org/wiki/Unix_shel
 First download `tldr` where you like.
 We recommend to download the `tldr` to `/usr/local/bin` and make it executable
 
+Go to a directory
+
+`cd /usr/local/bin` (recommended)
+
+Download the script
+
 ```
-wget -qO ~/.tldr/tldr https://raw.githubusercontent.com/j8r/tldr/master/tldr
+wget https://raw.githubusercontent.com/j8r/tldr/master/tldr
 chmod +x tldr
 ```
 
 or at your choice
 
 ```
-curl -o ~/.tldr/tldr https://raw.githubusercontent.com/j8r/tldr/master/tldr
+curl -O https://raw.githubusercontent.com/j8r/tldr/master/tldr
 chmod +x tldr
 ```
 
@@ -46,19 +52,19 @@ Optional: If `tldr` isn't in a `bin` system directory, you can find useful to ad
 		$ tldr -p linux tar
 ```
 
-The client caches a copy of the tldr page and the index locally under `~/.cache/tldr` (or the `/tmp/tldr` in portable mode) by default.
-
-By default, the cached copies will expire in 14 days.
+The client caches a copy of the tldr page and the index locally under `~/.cache/tldr` (or `/tmp/tldr` in the portable mode) and the cached copies will expire in 14 days by defaut.
 
 # Notes
 
-You need at least ether `wget` or `curl`. The last appears to be faster.
+You need at least either `wget` or `curl`. The last appears to be faster.
 
-Note that the script `tldr` is a POSIX compliant script, portable across UNIX systems. This means you can run it on any machine with a POSIX shell like `bash`, `zsh`, `sh`, `dash`, `ksh`...
+Note that `tldr` is a POSIX compliant script, portable across UNIX systems. This means you can run it on any machine with a POSIX shell like `bash`, `zsh`, `sh`, `dash`, `ksh`...
+
+Tested on Mac OS X 10.9, Ubuntu Linux 15.10, Debian 9 and CentOS 7.
 
 # Contributing
 
-This is the result of a Sunday afternoon project. It's been lightly tested under Mac OS X 10.9 and Ubuntu Linux 15.10. I've tried to make the project as portable as possible, but if there's something I missed I'd love your help.
+This is the result of a Sunday afternoon project. I've tried to make the project as portable as possible, but if there's something I missed I'd love your help.
 
 * Want a new feature? Feel free to file an issue for a feature request.
 * Find a bug? Open an issue please, or even better send me a pull request.

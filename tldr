@@ -103,8 +103,8 @@ code() {
     line="${line%?}"
     # convert {{variable}} to italics
     # Check if the shell support buil-in substitutions
-    (${a//}) 2>/dev/null && line=${line//\{\{/$reset$white} || { hash sed 2>/dev/null && line="$(printf "$line" | sed "s/{{/$reset$white/g" )"; }
-    (${a//}) 2>/dev/null && line=${line//\}\}/$reset$$boldred} || { hash sed 2>/dev/null && line="$(printf "$line" | sed "s/}}/$reset$bold$red/g" )"; }
+    (${a//}) 2>/dev/null && line=${line//\{\{/$reset$white} || { line="$(printf "$line" | sed "s/{{/$reset$white/g" )"; }
+    (${a//}) 2>/dev/null && line=${line//\}\}/$reset$bold$red} || { line="$(printf "$line" | sed "s/}}/$reset$bold$red/g" )"; }
 
     printf "    $bold$red$line$reset\n"
 }
