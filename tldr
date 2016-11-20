@@ -232,7 +232,10 @@ do
             usage
             ;;
         *)
-            page=${1:-''}
+            args="$*"
+            args_hyphens=${args// /-}
+            page=${args_hyphens:-''}
+            break
             ;;
     esac
     shift
