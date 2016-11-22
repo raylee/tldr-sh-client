@@ -168,6 +168,20 @@ path_for_cmd() {
     fi
 }
 
+# cache a local copy of the tldrpage if it does not exist
+cache_tldr() {
+    declare in_vars=$(</dev/stdin) 
+    
+    for word in $in_vars; do 
+        local p="$(path_for_cmd $word)"
+        cached="$configdir/$p"
+        recent "$cached" || {
+            mkdir -p $(dirname $cached)
+            curl -sf -o "$cached" "$base_url/$p"
+        }
+    done 
+}
+
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
     local p="$(path_for_cmd $1)"
@@ -192,6 +206,7 @@ USAGE: $cmd [options] <command>
     -l, --list:      show all available pages
     -p, --platform:  show page from specific platform rather than autodetecting
     -u, --update:    update, force retrieving latest copies of locally cached files
+    -c, --cache:     cache a local copy of all tldr commands
     -h, -?, --help:  this help overview
 
 <command>
@@ -223,12 +238,17 @@ do
             shift
             platform=$1
             ;;
+        -c|--cache)
+            tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | cache_tldr 
+            exit 0
+            ;;
         -*)
             usage
             ;;
         *)
             page=${1:-''}
             ;;
+                        
     esac
     shift
 done
