@@ -24,7 +24,7 @@ config() {
     force_update=''
 
     #check if config folder exists, otherwise create it
-    [ -d "$configdir" ] || mkdir -p "$configdir"
+    [ -d "$configdir" ] || mkdir -p "$configdir"; cache_tldr
 
     [ ! -f $index ] && update_index
     auto_update_index
