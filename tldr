@@ -168,18 +168,17 @@ path_for_cmd() {
     fi
 }
 
-# cache a local copy of the tldrpage if it does not exist
+# cache a local copy of the tldrpage 
 cache_tldr() {
-    declare in_vars=$(</dev/stdin) 
-    
-    for word in $in_vars; do 
-        local p="$(path_for_cmd $word)"
-        cached="$configdir/$p"
-        recent "$cached" || {
-            mkdir -p $(dirname $cached)
-            curl -sf -o "$cached" "$base_url/$p"
-        }
-    done 
+    set +f 
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master > $configdir/tldr-pages.tar.gz
+    tar xzf "$configdir"/tldr-pages.tar.gz -C "$configdir"
+    mv -f "$configdir"/tldr-pages-tldr-*/pages/* "$configdir"
+
+    # clean up temporary files
+    rm -r "$configdir"/tldr-pages*
+
+    set -f 
 }
 
 # return the local cached copy of the tldrpage, or retrieve and cache from github
@@ -239,7 +238,7 @@ do
             platform=$1
             ;;
         -c|--cache)
-            tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | cache_tldr 
+            cache_tldr 
             exit 0
             ;;
         -*)
