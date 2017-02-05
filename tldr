@@ -4,7 +4,7 @@ set +x -o pipefail
 # Bash tldr client
 #  forked from Ray Lee, http://github.com/raylee/tldr
 #  modified and expanded by pepa65: http://github.com/pepa65/tldr
-# Requiring: coreutils, ncurses(tput), less, grep, unzip, curl/wget
+# Requiring: coreutils, less, grep, unzip, curl/wget
 
 # The 5 elements in TLDR markup that can be styled with these colors and
 # backgrounds (last one specified will be used) and modes (more can apply):
@@ -179,7 +179,7 @@ Unlinted(){  # $1: error message
 	exit 4
 }
 
-Get_tldr(){  # $1: page
+Get_tldr(){  # $1: page
 	# convert the local platform name to tldr's version
 	# extract the platform key from index.json, return preferred subpath to page
 	local desc=$(tr '{' '\n' <$index |grep "\"name\":\"$1\"")

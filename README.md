@@ -20,7 +20,7 @@ sudo chmod +x $location
 If the location is not in $PATH, you need to specify the path to run it.
 
 ### Prerequisites
-coreutils, ncurses(tput), less, grep, unzip, curl / wget
+coreutils, less, grep, unzip, curl / wget
 
 ![tldr screenshot usage](tldr-usage.png?raw=true)
 
