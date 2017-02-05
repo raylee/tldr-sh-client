@@ -4,9 +4,9 @@
 client for the [tldr](https://github.com/rprieto/tldr/) project, providing
 poignant examples of terminal commands.**
 
-![tldr screenshot list](tldr-list.png?raw=true)
+![tldr screenshot list](tldr-list.jpg?raw=true)
 
-![tldr screenshot page](tldr-page.png?raw=true)
+![tldr screenshot page](tldr-page.jpg?raw=true)
 
 ## Installation
 Download the tldr bash script to the install location:
@@ -22,7 +22,7 @@ If the location is not in $PATH, you need to specify the path to run it.
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
 
-![tldr screenshot usage](tldr-usage.png?raw=true)
+![tldr screenshot usage](tldr-usage.jpg?raw=true)
 
 ## Customisation
 The colors and other styling of the 5 elements of tldr pages can be modified
@@ -38,14 +38,14 @@ Also the error color and page expiry can easily be set:
 * TLDR_ERROR_COLOR (defaults to Red)
 * TLDR_EXPIRY (defaults to 60)
 
-![tldr screenshot customize](tldr-customize.png?raw=true)
+![tldr screenshot customize](tldr-customize.jpg?raw=true)
 
 ## Contributing
 
 Please file an issue for a question, a bug or a feature request.
 Or even better, send a pull request!
 
-![tldr screenshot markdown](tldr-markdown.png?raw=true)
+![tldr screenshot markdown](tldr-markdown.jpg?raw=true)
 
 ### License
 
