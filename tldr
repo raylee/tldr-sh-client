@@ -1,246 +1,336 @@
 #!/bin/bash
-# tldr client by Ray Lee, http://github.com/raylee/tldr
-# a Sunday afternoon's project, I'm sure there's room for improvement. PRs welcome!
+set +x -o pipefail
+[[ $- == *i* ]] && echo "Don't source this script!" && return 1
+# Bash tldr client
+#  forked from Ray Lee, http://github.com/raylee/tldr
+#  modified and expanded by pepa65: http://github.com/pepa65/tldr
+# Requiring: coreutils, ncurses(tput), less, grep, unzip, curl/wget
 
-set -uf -o pipefail
+# The 5 elements in TLDR markup that can be styled with these colors and
+# backgrounds (last one specified will be used) and modes (more can apply):
+#  Colors: Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
+#  BG: BlackBG, RedBG, GreenBG, YellowBG, BlueBG, MagentaBG, CyanBG, WhiteBG
+#  Modes: Bold, Underline, Italic, Inverse
+# 'Newline' can be added to the Style list to add a newline before the element
+# and 'Space' to add a space at the start of the line (not for Value element)
+# (The style items are separated by commas, lower or uppercase, no spaces.)
+: ${TLDR_TITLE_STYLE:=Newline,Space,Bold,Yellow}
+: ${TLDR_DESCRIPTION_STYLE:=Space,Yellow}
+: ${TLDR_EXAMPLE_STYLE:=Newline,Bold,Green}
+: ${TLDR_CODE_STYLE:=Space,Bold,Blue}
+: ${TLDR_VALUE_STYLE:=Bold,Cyan}
+# Color and/or background (Newline and Space also allowed) for error messages
+: ${TLDR_ERROR_COLOR=Red}
 
-# initialize globals, sanity check the environment, etc.
-config() {
-    init_term_cmds
+# How long before an attempt will be made to re-download a page
+: ${TLDR_EXPIRY:=60}
 
-    if [ -z $(which curl) ]; then
-        echo "${red}tldr requires \`curl\` installed in your path$reset"
-        exit 1
-    fi
+Usage(){  # $1: optional exit code
+	self=$(basename $0)
+	local exit=${1:-0}
+	Out "$(cat <<-EOF
 
-    configdir=~/.tldr
-    [ -d ~/.config ] && configdir=~/.config/tldr
+		 USAGE: $GRE$B$self$XB$DEF [$YEL${B}option$XB$DEF] [$BLU${B}platform$XB/$DEF]$CYA$B<command>$XB$DEF
 
-    platform=$(get_platform)
-    base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
-    index_url="http://tldr-pages.github.io/assets/index.json"
-    index="$configdir/index.json"
-    cache_days=14
-    force_update=''
+		$BLU$B platform$XB/$CYA${B}command$XB$DEF:           Show page for$CYA$B command$XB$DEF (from$BLU$B platform$XB$DEF)
 
-    #check if config folder exists, otherwise create it
-    [ -d "$configdir" ] || mkdir -p "$configdir"
+		$BLU$B platform$XB$DEF is optionally one of:$YEL common$DEF,$YEL linux$DEF,$YEL osx$DEF,$YEL sunos$DEF
 
-    [ ! -f $index ] && update_index
-    auto_update_index
+		$YEL$B option$XB$DEF is optionally one of:
+		  $B$YEL-l$DEF,$YEL --list$DEF $BLU[platform]$DEF$XB:      Show all available pages (from$BLU$B platform$XB$DEF)
+		  $B$YEL-m$DEF,$YEL --markdown$DEF$XB $CYA$B<command>$XB$DEF:   Show the markdown source for $B$CYAcommand$DEF$XB
+		  $B$YEL-c$DEF,$YEL --cache$DEF$XB:                Cache all pages from repo$DEF
+		  $B$YEL-u$DEF,$YEL --update$DEF$XB:               Re-download index file$DEF
+		  [$B$YEL-h$DEF,$YEL -?$DEF,$YEL --help$DEF$XB]:           This help overview$DEF
+
+		 Element styling:$T Title$XT$D Description$XD$E Example$XD$C Code$XC$V Value$XV
+		 All pages and the index are cached locally under $YEL$configdir$DEF.
+		 By default, the cached copies will be re-downloaded after $YEL$TLDR_EXPIRY$DEF days.
+		EOF
+	)"
+	exit $exit
 }
 
-update_index() {
-    curl -sf -o "$index" "$index_url"
-    res=$?
-    if [ $res -eq 22 ]; then
-        echo "Could not download index from $index_url"
-        exit 1
-    fi
+Err(){ STDERR+="$ERRNL$ERRSP$ERR$B$1$XB$XERR$N";}  # $1: error message for later
+
+Out(){ STDOUT+="$1$N";}  # $1: message for later
+
+Style(){  # $1: Style specification
+	local style styles=${1// /}  # remove spaces
+	STYLES= XSTYLES= COLOR= XCOLOR= NL= SP=
+	for style in ${styles//,/ }
+	do
+		[[ ${style,,} = newline ]] && NL=$N
+		[[ ${style,,} = space ]] && SP=' '
+		COLOR+=${color[${style,,}]:-}${bg[${style,,}]:-}
+		XCOLOR=${xbg[${style,,}]:-}${xcolor[${style,,}]:-}$XCOLOR
+		STYLES+=${color[${style,,}]:-}${bg[${style,,}]:-}${mode[${style,,}]:-}
+		XSTYLES=${xmode[${style,,}]:-}${xbg[${style,,}]:-}${xcolor[${style,,}]:-}$XSTYLES
+	done
+}	
+
+Init_term(){
+	# Term codes with tput according to http://mywiki.wooledge.org/BashFAQ/037
+	[[ -t 2 ]] && {  # only if interactive session (stderr open)
+			B=$'\e[1m' # $(tput bold || tput md)  # Start bold
+			XB=$'\e[0m'  # End bold (no tput code...) -- needs echo -e
+			U=$'\e[4m' # $(tput smul || tput us)  # Start underline
+			XU=$'\e[24m' # $(tput rmul || tput ue)  # End underline
+			I=$'\e[3m' # $(tput sitm || tput ZH)  # Start italic
+			XI=$'\e[23m' # $(tput ritm || tput ZR)  # End italic
+			R=$'\e[7m' # $(tput smso || tput so)  # Start reverse
+			XR=$'\e[27m' # $(tput rmso || tput se)  # End reverse
+			X=$'\e[0m' # $(tput sgr0 || tput me)  # End all
+
+		[[ $TERM != *-m ]] && {
+				BLA=$'\e[30m' # $(tput setaf 0 || tput AF 0)
+				RED=$'\e[31m' # $(tput setaf 1 || tput AF 1)
+				GRE=$'\e[32m' # $(tput setaf 2 || tput AF 2)
+				YEL=$'\e[33m' # $(tput setaf 3 || tput AF 3)
+				BLU=$'\e[34m' # $(tput setaf 4 || tput AF 4)
+				MAG=$'\e[35m' # $(tput setaf 5 || tput AF 5)
+				CYA=$'\e[36m' # $(tput setaf 6 || tput AF 6)
+				WHI=$'\e[37m' # $(tput setaf 7 || tput AF 7)
+				DEF=$'\e[39m' # $(tput op)
+				BLAB=$'\e[40m' # $(tput setab 0 || tput AB 0)
+				REDB=$'\e[41m' # $(tput setab 1 || tput AB 1)
+				GREB=$'\e[42m' # $(tput setab 2 || tput AB 2)
+				YELB=$'\e[43m' # $(tput setab 3 || tput AB 3)
+				BLUB=$'\e[44m' # $(tput setab 4 || tput AB 4)
+				MAGB=$'\e[45m' # $(tput setab 5 || tput AB 5)
+				CYAB=$'\e[46m' # $(tput setab 6 || tput AB 6)
+				WHIB=$'\e[47m' # $(tput setab 7 || tput AB 7)
+				DEFB=$'\e[49m' # $(tput op)
+		}
+		# osx's termcap doesn't have italics. The below adds support for iTerm2
+		# and is harmless on Terminal.app
+		#[[ $(uname -s) = Darwin ]] && {
+		#		I=$(echo -e "\e[3m")
+		#		XI=$(echo -e "\e[23m")
+		#}
+	}
+
+	declare -A color=(['black']=$BLA ['red']=$RED ['green']=$GRE ['yellow']=$YEL \
+			['blue']=$BLU ['magenta']=$MAG ['cyan']=$CYA ['white']=$WHI)
+	declare -A xcolor=(['black']=$DEF ['red']=$DEF ['green']=$DEF ['yellow']=$DEF \
+			['blue']=$DEF ['magenta']=$DEF ['cyan']=$DEF ['white']=$DEF)
+	declare -A bg=(['blackbg']=$BLAB ['redbg']=$REDB ['greenbg']=$GREB ['yellowbg']=$YELB \
+			['bluebg']=$BLUB ['magentabg']=$MAGB ['cyanbg']=$CYAB ['whitebg']=$WHIB)
+	declare -A xbg=(['blackbg']=$DEFB ['redbg']=$DEFB ['greenbg']=$DEFB ['yellowbg']=$DEFB \
+			['bluebg']=$DEFB ['magentabg']=$DEFB ['cyanbg']=$DEFB ['whitebg']=$DEFB)
+	declare -A mode=(['bold']=$B ['underline']=$U ['italic']=$I ['inverse']=$R)
+	declare -A xmode=(['bold']=$XB ['underline']=$XU ['italic']=$XI ['inverse']=$XR)
+
+	# the five main tldr page styles and error message colors
+	Style "$TLDR_TITLE_STYLE"
+	T=$STYLES XT=$XSTYLES TNL=$NL TSP=$SP
+	Style "$TLDR_DESCRIPTION_STYLE"
+	D=$STYLES XD=$XSTYLES DNL=$NL DSP=$SP
+	Style "$TLDR_EXAMPLE_STYLE"
+	E=$STYLES XE=$XSTYLES ENL=$NL ESP=$SP
+	Style "$TLDR_CODE_STYLE"
+	C=$STYLES XC=$XSTYLES CNL=$NL CSP=$SP
+	Style "$TLDR_VALUE_STYLE"
+	V=$STYLES XV=$XSTYLES
+	Style "$TLDR_ERROR_COLOR"
+	ERR=$COLOR XERR=$XCOLOR ERRNL=$NL ERRSP=$SP
 }
 
-# if the file exists and is more recent than $cache_days old
-recent() {
-    exists=$(find "$1" -mtime -$cache_days 2>/dev/null)
-    [ -n "$exists" -a -z "$force_update" ]
+Recent(){ find "$1" -mtime -$TLDR_EXPIRY &>/dev/null;}  # $1: page
+
+Update_index(){
+	$DL "$index" "$index_url" && Out "${GRE}Index file $I$index$XI re-downloaded$DEF" || {
+		Err "Could not download index from $I$index_url$XI"
+		exit 2
+	}
 }
 
-auto_update_index() {
-    recent "$index" || update_index
+Config(){  # initialize globals, sanity check the environment, etc.
+	PLATFORM=common STDOUT= STDERR="" Q='"' N=$'\n'
+	case $(uname -s) in
+		Darwin) PLATFORM='osx' ;;
+		Linux) PLATFORM='linux' ;;
+		SunOS) PLATFORM='sunos' ;;
+	esac
+	Init_term
+	trap 'echo -ne "$STDOUT$N$STDERR" |less -RXMQF' EXIT
+
+	# Select download method
+	DL="$(type -p curl) -sfo" || {
+		DL="$(type -p wget) -qNO" || {
+			Err "tldr requires$I curl$XI or$I wget $XI installed in your path"
+			exit 3
+		}
+	}
+
+	base_url='https://raw.githubusercontent.com/tldr-pages/tldr/master/pages'
+	zip_url='https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/tldr.zip'
+	index_url='http://tldr-pages.github.io/assets/index.json'
+
+	[[ -d ~/.config ]] && configdir=~/.config/tldr || configdir=~/.tldr
+	[[ -d "$configdir" ]] || mkdir -p "$configdir"
+	index="$configdir/index.json"
+	# if the file doesn't exists, or if it's younger than $TLDR_EXPIRY
+	[[ -f $index ]] && Recent "$index" || Update_index
 }
 
-# function contents via http://mywiki.wooledge.org/BashFAQ/037
-init_term_cmds() {
-    # only set if we're on an interactive session
-    [[ -t 2 ]] && {
-        reset=$(    tput sgr0   || tput me      ) # Reset cursor
-        bold=$(     tput bold   || tput md      ) # Start bold
-        under=$(    tput smul   || tput us      ) # Start underline
-        italic=$(   tput sitm   || tput ZH      ) # Start italic
-        eitalic=$(  tput ritm   || tput ZH      ) # End italic
-        default=$(  tput op                     )
-        back=$'\b'
-
-        [[ $TERM != *-m ]] && {
-            black=$(    tput setaf 0 || tput AF 0    )
-            red=$(      tput setaf 1 || tput AF 1    )
-            green=$(    tput setaf 2 || tput AF 2    )
-            yellow=$(   tput setaf 3 || tput AF 3    )
-            blue=$(     tput setaf 4 || tput AF 4    )
-            magenta=$(  tput setaf 5 || tput AF 5    )
-            cyan=$(     tput setaf 6 || tput AF 6    )
-            white=$(    tput setaf 7 || tput AF 7    )
-
-            onblue=$(   tput setab 4 || tput AB 4    )
-            ongrey=$(   tput setab 7 || tput AB 7    )
-        }
-    } 2>/dev/null ||:
-
-    # osx's termcap doesn't have italics. The below adds support for iTerm2
-    # and is harmless on Terminal.app
-    [ "$(get_platform)" = "osx" ] && {
-        italic=$(echo -e "\033[3m")
-        eitalic=$(echo -e "\033[23m")
-    }
+Unlinted(){  # $1: error message
+	Err "Page $I$PAGE$XI not properly linted!${N}Line $I$L$XI:[$U$line$XU]$N$1"
+	exit 4
 }
 
-heading() {
-    local line="$*"
-    echo "$bold$red${line:2}$reset"
+Get_tldr(){  # $1: page
+	# convert the local platform name to tldr's version
+	# extract the platform key from index.json, return preferred subpath to page
+	local desc=$(tr '{' '\n' <$index |grep "\"name\":\"$1\"")
+	# results in, eg, "name":"netstat","platform":["linux","osx"]},
+
+	[[ $desc ]] || return  # not found
+	if [[ $desc =~ \"$platform\" ]]
+	then  # user specified platform first
+		PAGE="$platform/$1.md"
+	elif [[ $desc =~ \"common\" ]]
+	then  # common platform?
+		PAGE="common/$1.md"
+	else  # give warning for sure now
+		# system platform, or first one listed in index
+		[[ $desc =~ \"$PLATFORM\" ]] && PAGE="$PLATFORM/$1.md" \
+				|| PAGE=$(cut -d $Q -f 8 <<<"$desc")/"$1.md"
+		Err "tldr page $I$1$XI not found in $I$platform$XI or$I common$XI, page from platform $U${PAGE%/*}$XU instead"
+	fi
+
+	# return the local cached copy of the tldrpage, or retrieve and cache from github
+	CACHED="$configdir/$PAGE"
+	Recent "$CACHED" || {
+		mkdir -p "${CACHED%/*}"
+		$DL "$CACHED" "$base_url/$PAGE" || {
+			Err "Could not download page $I$CACHED$XI from index $U$index_url$XU"
+			exit 5
+		}
+	}
 }
 
-quotation() {
-    local line="$*"
-    echo "$under${line:2}$reset"
+Title(){  # $1: line
+	line=$1
+	((${#line} <= 2)) && Unlinted "No title"
+	[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
+	Out "$TNL$TSP$T${line:2}$XT";
 }
 
-list_item() {
-    local line="$*"
-    echo "$line$reset"
+Description(){  # $1: line
+	line=$1
+	((${#line} <= 3)) && Unlinted "No valid desciption"
+	[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
+	[[ ! ${line: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
+	Out "$DNL$DSP$D${line:2}$XD";
+	DNL=
 }
 
-code() {
-    local line="$*"
-    # I'm sure there's a better way to strip the first and last characters.
-    line="${line:1}"
-    line="${line%\`}"
-    # convert {{variable}} to italics
-    line=${line//\{\{/$italic}
-    line=${line//\}\}/$eitalic}
-
-    echo "$bold$line$reset"
+Example(){  # $1: line
+	line=$1
+	((${#line} <= 2)) && Unlinted "No example content"
+	[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
+	Out "$ENL$EPS$E$line$XE"
 }
 
-text() {
-    local line="$*"
-    echo "$line"
+Code(){  # $1: line
+	line=$1
+	((${#1} <= 2)) && Unlinted "No valid code content"
+	[[ ! ${line: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
+	line=${line:1:-1}
+	# Value: convert {{value}}
+	line=${line//\{\{/$CX$V}
+	line=${line//\}\}/$XV$C}
+	Out "$CNL$CSP$C$line$XC"
 }
 
-# an idiot-level recognition of tldr's markdown. Needs improvement, or
-# subcontracting out to a markdown -> ANSI formatting command
-display_tldr() {
-    # read one line at a time, don't strip whitespace ('IFS='), and process
-    # last line even if it doesn't have a newline at the end
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        start=${line:0:1}           # get the first character
-        case "$start" in
-            '#') heading "$line"
-                ;;
-            '>') quotation "$line"
-                ;;
-            '-') list_item "$line"
-                ;;
-            '`') code "$line"
-                ;;
-            *) text "$line"
-                ;;
-        esac
-    done
+Display_tldr(){
+	# read one line at a time, don't strip whitespace ('IFS='), and
+	# process last line even if it doesn't have a newline at the end
+	L=0
+	while IFS= read -r line || [[ $line ]]
+	do
+		((++L))
+		case ${line:0:1} in  # first character
+			'#') Title "$line" ;;
+			'>') Description "$line" ;;
+			'-') Example "$line" ;;
+			'`') Code "$line" ;;
+			'') continue ;;
+			*) Unlinted "Bad first character" ;;
+		esac
+	done
 }
 
-# convert the local platorm name to tldr's version
-get_platform() {
-    case `uname -s` in
-        Darwin) echo "osx"    ;;
-        Linux)  echo "linux"  ;;
-        SunOS)  echo "sunos"  ;;
-        *)      echo "common" ;;
-    esac
+List_pages(){  # $1: exit code
+	[[ $platform ]] && platf=" from platform $I$platform$XI"
+	Out "${GRE}Known tldr pages$platf:"
+	Out "$(while read c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" $c1 $c2 $c3; done \
+			<<<$(tr '{' '\n' <"$configdir/index.json" |grep "$platform" |cut -d $Q -f4))"
+	exit $1
 }
 
-# extract the platform key from index.json, return preferred subpath to tldrpage
-path_for_cmd() {
-    local desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
-    # results in, eg, "name":"netstat","platform":["linux","osx"]},
-
-    [ -z "$desc" ] && return
-
-    # use the platform specific version of the tldr first
-    if [[ $desc =~ \"$platform\" ]]; then
-        echo "$platform/$1.md"
-    elif [[ $desc =~ \"common\" ]]; then
-        echo "common/$1.md"
-    else
-        # take the first one so we can show something, but warn the user
-        local p=$(echo "$desc" | cut -d '"' -f 8)
-        >&2 echo -e "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
-        echo "$p/$1.md"
-    fi
+Cache_fill(){  # $1: exit code
+	tmp=$(mktemp -d)
+	$DL "$tmp/pages.zip" "$zip_url" || {
+		Err "Could not download pages archive from $U$zip_url$XU"
+		exit 6
+	}
+	unzip="$(type -p unzip) -q" || {
+		Err "Unzip is necessary to fill the cache"
+		exit 7
+	}
+	$unzip "$tmp/pages.zip" -d "$tmp" 'pages/*'
+	rm -rf -- "$configdir/"*
+	mv -- "$tmp/pages/"* "$configdir/"
+	rm -rf -- "$tmp"
+	Out "${GRE}Pages cached in $U$configdir$XU$DEF"
+	exit $1
 }
 
-# return the local cached copy of the tldrpage, or retrieve and cache from github
-get_tldr() {
-    local p="$(path_for_cmd $1)"
-    cached="$configdir/$p"
-    recent "$cached" || {
-        mkdir -p $(dirname $cached)
-        curl -sf -o "$cached" "$base_url/$p"
-    }
-    # if the curl failed for some reason, keep cat from whinging
-    cat "$cached" 2>/dev/null
+Config
+platform=
+markdown=0
+err=0
+arg=${1:-}
+case "$arg" in
+	-l|--list) shift
+		[[ $1 ]] && {
+			platform=$1
+			[[ ,common,linux,osx,sunos, == *,$platform,* ]] || {
+				Err "Unknown platform $I$platform$XI"
+				Usage 8
+			}
+			shift
+			[[ $1 ]] && Err "No more command line arguments allowed" && err=9
+		}
+		List_pages $err ;;
+	-c|--cache) shift;
+		[[ $1 ]] && Err "No more command line arguments allowed" && err=10
+		Cache_fill $err ;;
+	-u|--update) shift
+		[[ $1 ]] && Err "No more command line arguments allowed" && err=11
+		Update_index
+		exit $err ;;
+	-m|--markdown) markdown=1; shift; page=${@:-} ;;
+	''|-h|-\?|--help) shift
+			[[ $1 ]] && Err "No more command line arguments allowed" && err=12
+		Usage $err ;;
+	-*) Err "Unrecognized option $I$1$XI"; Usage 13 ;;
+	*) page=${@:-} ;;
+esac
+
+[[ -z ${page:-} ]] && Err "No command specified" && Usage 14
+[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 15
+[[ $page == */* ]] && platform=${page%/*} && page=${page##*/}
+[[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
+	Err "Unknown platform $I$platform$XI"
+	Usage 16
 }
 
+Get_tldr ${page// /-}
+[[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 17
 
-config
-
-usage() {
-    cmd=$(basename $0)
-    cat <<EOF
-USAGE: $cmd [options] <command>
-
-[options]
-    -l, --list:      show all available pages
-    -p, --platform:  show page from specific platform rather than autodetecting
-    -u, --update:    update, force retrieving latest copies of locally cached files
-    -h, -?, --help:  this help overview
-
-<command>
-    Show examples for this command
-
-The client caches a copy of all pages and the index locally under
-$configdir. By default, the cached copies will expire in $cache_days days.
-
-EOF
+((markdown)) && Out "$(cat "$CACHED")" || Display_tldr <"$CACHED"
+# The error trap will output the accumulated stdout and stderr
 exit 0
-}
-
-while [ $# -gt 0 ]
-do
-    case "$1" in
-        -l|--list)
-            >&2 echo -e "Known tldr pages: \n"
-            tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | column
-            exit 0
-            ;;
-        -u|--update)
-            force_update=yes
-            update_index
-            ;;
-        -h|-\?|--help)
-            usage
-            ;;
-        -p|--platform)
-            shift
-            platform=$1
-            ;;
-        -*)
-            usage
-            ;;
-        *)
-            page=${1:-''}
-            ;;
-    esac
-    shift
-done
-
-[ -z ${page:-} ] && usage
-
-tldr="$(get_tldr $page)"
-
-if [ -z "$tldr" ]; then
-    echo "tldr page for command $page not found"
-    exit 1
-fi
-
-display_tldr <<< "$tldr"
-echo

@@ -1,41 +1,52 @@
-A fully-functional [bash](https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29) client for [tldr](https://github.com/rprieto/tldr/). This version aims to be the easiest and smallest to set up on a new account, without sacrificing any features.
+# tldr-bash
 
-![tldr screenshot](Screenshot.png?raw=true)
+**A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
+client for the [tldr](https://github.com/rprieto/tldr/) project, providing
+poignant examples of terminal commands.**
 
-# Setup
+![tldr screenshot list](tldr-list.png?raw=true)
 
-	mkdir -p ~/bin
-	curl -o ~/bin/tldr https://raw.githubusercontent.com/raylee/tldr/master/tldr
-	chmod +x ~/bin/tldr
+![tldr screenshot page](tldr-page.png?raw=true)
 
-Then make sure `~/bin` is in your `$PATH`. On OSX edit ~/.bash_profile (or ~/.bashrc on Linux), and add the following line to the bottom of the file:
+## Installation
+Download the tldr bash script to the install location:
 
-	export PATH=~/bin:$PATH
+```bash
+location=/usr/local/bin/tldr  # elevated privileges needed for some locations
+sudo wget -qO $location https://raw.githubusercontent.com/pepa65/tldr/master/tldr
+sudo chmod +x $location
+```
 
-# Prerequisites
+If the location is not in $PATH, you need to specify the path to run it.
 
-`curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
+### Prerequisites
+coreutils, ncurses(tput), less, grep, unzip, curl / wget
 
-# Usage
-	tldr [options] command
+![tldr screenshot usage](tldr-usage.png?raw=true)
 
-	[options]
-		-l, --list:      show all available pages
-		-p, --platform:  show page from specific platform rather than autodetecting
-		-u, --update:    update, force retrieving latest copies of index and <command>
-		-h, -?, --help:  this help overview
+## Customisation
+The colors and other styling of the 5 elements of tldr pages can be modified
+either by editing the first few lines of the scipt, or by setting the following
+environment variables:
+* TLDR_TITLE_STYLE (defaults to Newline,Space,Bold,Yellow)
+* TLDR_DESCRIPTION_STYLE (defaults to Space,Yellow)
+* TLDR_EXAMPLE_STYLE (defaults to Newline,Bold,Green)
+* TLDR_CODE_STYLE (defaults to Space,Bold,Blue)
+* TLDR_VALUE_STYLE (defaults to Bold,Cyan)
 
-	command
-		Show examples for this command
+Also the error color and page expiry can easily be set:
+* TLDR_ERROR_COLOR (defaults to Red)
+* TLDR_EXPIRY (defaults to 60)
 
-The client caches a copy of all pages and the index locally under
-~/.config/tldr. By default, the cached copies will expire in 14 days.
+![tldr screenshot customize](tldr-customize.png?raw=true)
 
-# Contributing
+## Contributing
 
-This is the result of a Sunday afternoon project. It's been lightly tested under Mac OS X 10.9 and Ubuntu Linux 15.10. I've tried to make the project as portable as possible, but if there's something I missed I'd love your help.
+Please file an issue for a question, a bug or a feature request.
+Or even better, send a pull request!
 
-* Want a new feature? Feel free to file an issue for a feature request.
-* Find a bug? Open an issue please, or even better send me a pull request.
+![tldr screenshot markdown](tldr-markdown.png?raw=true)
 
-Contributions are always welcome at any time!
+### License
+
+Relicensed under GPL v3+
