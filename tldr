@@ -38,14 +38,15 @@ Usage(){  # $1: optional exit code
 
 		$YEL$B option$XB$DEF is optionally one of:
 		  $B$YEL-l$DEF,$YEL --list$DEF $BLU[platform]$DEF$XB:      Show all available pages (from$BLU$B platform$XB$DEF)
-		  $B$YEL-m$DEF,$YEL --markdown$DEF$XB $CYA$B<command>$XB$DEF:   Show the markdown source for $B$CYAcommand$DEF$XB
-		  $B$YEL-c$DEF,$YEL --cache$DEF$XB:                Cache all pages from repo$DEF
-		  $B$YEL-u$DEF,$YEL --update$DEF$XB:               Re-download index file$DEF
-		  [$B$YEL-h$DEF,$YEL -?$DEF,$YEL --help$DEF$XB]:           This help overview$DEF
+		  $B$YEL-r$DEF,$YEL --render$DEF$XB $MAG$B<file>$XB$DEF:        Render a local$B$MAG file$DEF$XB as tldr markdown
+		  $B$YEL-m$DEF,$YEL --markdown$DEF$XB $CYA$B<command>$XB$DEF:   Show the markdown source for$B$CYA command$DEF$XB
+		  $B$YEL-c$DEF,$YEL --cache$DEF$XB:                Cache all pages by downloading archive from repo
+		  $B$YEL-u$DEF,$YEL --update$DEF$XB:               Re-download index file from repo
+		  [$B$YEL-h$DEF,$YEL -?$DEF,$YEL --help$DEF$XB]:           This help overview
 
 		 Element styling:$T Title$XT$D Description$XD$E Example$XD$C Code$XC$V Value$XV
 		 All pages and the index are cached locally under $YEL$configdir$DEF.
-		 By default, the cached copies will be re-downloaded after $YEL$TLDR_EXPIRY$DEF days.
+		 By default, the cached copies will be re-downloaded after $YEL${TLDR_EXPIRY// /}$DEF days.
 		EOF
 	)"
 	exit $exit
@@ -289,47 +290,51 @@ Cache_fill(){  # $1: exit code
 }
 
 Config
-platform=
-markdown=0
-err=0
-arg=${1:-}
+markdown=0 err=0
+arg=$1
 case "$arg" in
-	-l|--list) shift
-		[[ $1 ]] && {
-			platform=$1
+	-l|--list) [[ $2 ]] && {
+			platform=$2
 			[[ ,common,linux,osx,sunos, == *,$platform,* ]] || {
 				Err "Unknown platform $I$platform$XI"
 				Usage 8
 			}
-			shift
-			[[ $1 ]] && Err "No more command line arguments allowed" && err=9
+			[[ $3 ]] && Err "No more command line arguments allowed" && err=9
 		}
 		List_pages $err ;;
-	-c|--cache) shift;
-		[[ $1 ]] && Err "No more command line arguments allowed" && err=10
+	-c|--cache) [[ $2 ]] && Err "No more command line arguments allowed" && err=10
 		Cache_fill $err ;;
-	-u|--update) shift
-		[[ $1 ]] && Err "No more command line arguments allowed" && err=11
+	-u|--update) [[ $2 ]] && Err "No more command line arguments allowed" && err=11
 		Update_index
 		exit $err ;;
-	-m|--markdown) markdown=1; shift; page=${@:-} ;;
-	''|-h|-\?|--help) shift
-			[[ $1 ]] && Err "No more command line arguments allowed" && err=12
+	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 12
+		file=$2
+		[[ $3 ]] && Err "No more command line arguments allowed" && err=13 ;;
+	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=14
 		Usage $err ;;
-	-*) Err "Unrecognized option $I$1$XI"; Usage 13 ;;
-	*) page=${@:-} ;;
+	-m|--markdown) markdown=1; shift; page=$@ ;;
+	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=15
+		Usage $err ;;
+	-*) Err "Unrecognized option $I$1$XI"; Usage 16 ;;
+	*) page=$@ ;;
 esac
 
-[[ -z ${page:-} ]] && Err "No command specified" && Usage 14
-[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 15
+[[ -f $file ]] && {
+	Display_tldr <"$file" && exit 0
+	Err "A file error occured"
+	exit 17
+}
+[[ $file ]] && Err "No file:$I $file$XI" && exit 18
+[[ -z $page ]] && Err "No command specified" && Usage 19
+[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 20
 [[ $page == */* ]] && platform=${page%/*} && page=${page##*/}
 [[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
 	Err "Unknown platform $I$platform$XI"
-	Usage 16
+	Usage 21
 }
 
 Get_tldr ${page// /-}
-[[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 17
+[[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 22
 
 ((markdown)) && Out "$(cat "$CACHED")" || Display_tldr <"$CACHED"
 # The error trap will output the accumulated stdout and stderr
