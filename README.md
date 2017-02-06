@@ -6,6 +6,8 @@ poignant examples of terminal commands.**
 
 <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
+This client can render both the old and the new tldr markup format.
+
 ## Installation
 Download the tldr bash script to the install location:
 
@@ -52,3 +54,5 @@ Or even better, send a pull request!
 ### License
 
 Relicensed under GPL v3+
+
+<img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />

@@ -170,12 +170,12 @@ Config(){  # initialize globals, sanity check the environment, etc.
 	[[ -d ~/.config ]] && configdir=~/.config/tldr || configdir=~/.tldr
 	[[ -d "$configdir" ]] || mkdir -p "$configdir"
 	index=$configdir/index.json
-	# if the file doesn't exists, or if it's younger than $TLDR_EXPIRY
+	# update if the file doesn't exists, or if it's older than $TLDR_EXPIRY
 	[[ -f $index ]] && Recent "$index" || Update_index
 }
 
 Unlinted(){  # $1: error message
-	Err "Page $I$PAGE$XI not properly linted!${N}Line $I$L$XI:[$U$line$XU]$N$1"
+	Err "Page $I$PAGE$XI not properly linted!\nLine $I$L$XI:[$U$REPLY$XU]$N$ERR$B$1"
 	exit 4
 }
 
@@ -185,19 +185,27 @@ Get_tldr(){  # $1: page
 	local desc=$(tr '{' '\n' <$index |grep "\"name\":\"$1\"")
 	# results in, eg, "name":"netstat","platform":["linux","osx"]},
 
-	[[ $desc ]] || return  # not found
-	if [[ $desc =~ \"$platform\" ]]
-	then  # user specified platform first
-		PAGE=$platform/$1.md
-	elif [[ $desc =~ \"common\" ]]
-	then  # common platform?
-		PAGE=common/$1.md
-	else  # give warning for sure now
-		# system platform, or first one listed in index
-		[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md \
-				|| PAGE=$(cut -d $Q -f 8 <<<"$desc")/"$1.md"
-		Err "tldr page $I$1$XI not found in $I$platform$XI or$I common$XI, page from platform $U${PAGE%/*}$XU instead"
-	fi
+	[[ $desc ]] || return  # just not found
+
+	err=0
+	[[ $platform ]] && {  # platform given on commandline
+		[[ $desc =~ \"$platform\" ]] && PAGE=$platform/$1.md || {
+			notfound=$I$platform$XI
+			err=1
+		}
+	} || [[ $desc =~ \"common\" ]] && PAGE=common/$1.md || {  # not in common either
+		[[ $notfound ]] && notfound+=" or "
+		notfound+=${I}common$XI
+	}
+	# if no page found yet, try the system platform
+	[[ $PAGE ]] || [[ $platform = $PLATFORM ]] || \
+			[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md || {
+		notfound+=" or $I$PLATFORM$XI"
+		err=1
+	}
+	# if still no page found, get the first entry in index
+	[[ $PAGE ]] || PAGE=$(cut -d $Q -f 8 <<<"$desc")/"$1.md"
+	((err)) && Err "tldr page $I$1$XI not found in $notfound, page from platform $U${PAGE%/*}$XU instead"
 
 	# return the local cached copy of the tldrpage, or retrieve and cache from github
 	CACHED=$configdir/$PAGE
@@ -210,54 +218,59 @@ Get_tldr(){  # $1: page
 	}
 }
 
-Title(){  # $1: line
-	line=$1
-	((${#line} <= 2)) && Unlinted "No title"
-	[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
-	Out "$TNL$TSP$T${line:2}$XT";
-}
-
-Description(){  # $1: line
-	line=$1
-	((${#line} <= 3)) && Unlinted "No valid desciption"
-	[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
-	[[ ! ${line: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
-	Out "$DNL$DSP$D${line:2}$XD";
-	DNL=
-}
-
-Example(){  # $1: line
-	line=$1
-	((${#line} <= 2)) && Unlinted "No example content"
-	[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
-	Out "$ENL$EPS$E$line$XE"
-}
-
-Code(){  # $1: line
-	line=$1
-	((${#1} <= 2)) && Unlinted "No valid code content"
-	[[ ! ${line: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
-	line=${line:1:-1}
-	# Value: convert {{value}}
-	line=${line//\{\{/$CX$V}
-	line=${line//\}\}/$XV$C}
-	Out "$CNL$CSP$C$line$XC"
-}
-
 Display_tldr(){
 	# read one line at a time, don't strip whitespace ('IFS='), and
 	# process last line even if it doesn't have a newline at the end
 	L=0
-	while IFS= read -r line || [[ $line ]]
+	while read -r || [[ $REPLY ]]
 	do
 		((++L))
-		case ${line:0:1} in  # first character
-			'#') Title "$line" ;;
-			'>') Description "$line" ;;
-			'-') Example "$line" ;;
-			'`') Code "$line" ;;
+		((L==1)) && {
+			[[ ${REPLY:0:1} = '#' ]] && newfmt=0 || newfmt=1
+			((newfmt)) && {
+				[[ $REPLY ]] || Unlinted "No title"
+				Out "$TNL$TSP$T$REPLY$XT"
+				len=${#REPLY}
+				read -r; ((++L))
+				[[ $REPLY =~ [^=] ]] && Unlinted "Title underline must be equal signs"
+				((len!=${#REPLY})) && Unlinted "Underline length not equal to title's"
+				read -r; ((++L))
+			}
+		}
+		case ${REPLY:0:1} in  # first character
+			'#') ((newfmt)) && Unlinted "Bad first character"
+				((${#REPLY} <= 2)) && Unlinted "No title"
+				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				Out "$TNL$TSP$T${REPLY:2}$XT" ;;
+			'>') ((${#REPLY} <= 3)) && Unlinted "No valid desciption"
+				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				[[ ! ${REPLY: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
+				Out "$DNL$DSP$D${REPLY:2}$XD"
+				DNL= ;;
+			'-') ((newfmt)) && Unlinted "Bad first character"
+				((${#REPLY} <= 2)) && Unlinted "No example content"
+				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				Out "$ENL$EPS$E$REPLY$XE" ;;
+			' ') ((newfmt)) || Unlinted "Bad first character"
+				((${#REPLY} <= 4)) && Unlinted "No valid code content"
+				[[ ${REPLY:0:4} = '    ' ]] || Unlinted "No four spaces before code"
+				line=${REPLY:4}
+				# Value: convert {{value}}
+				line=${line//\{\{/$CX$V}
+				line=${line//\}\}/$XV$C}
+				Out "$CNL$CSP$C$line$XC" ;;
+			'`') ((newfmt)) && Unlinted "Bad first character"
+				((${#REPLY} <= 2)) && Unlinted "No valid code content"
+				[[ ! ${REPLY: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
+				line=${REPLY:1:-1}
+				# Value: convert {{value}}
+				line=${line//\{\{/$CX$V}
+				line=${line//\}\}/$XV$C}
+				Out "$CNL$CSP$C$line$XC" ;;
 			'') continue ;;
-			*) Unlinted "Bad first character" ;;
+			*) ((newfmt)) || Unlinted "Bad first character"
+				[[ -z $REPLY ]] && Unlinted "No example content"
+				Out "$ENL$EPS$E- $REPLY$XE" ;;
 		esac
 	done
 }
@@ -307,23 +320,23 @@ case "$arg" in
 		Update_index
 		exit $err ;;
 	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 12
-		file=$2
-		[[ $3 ]] && Err "No more command line arguments allowed" && err=13 ;;
-	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=14
+		[[ $3 ]] && Err "No more command line arguments allowed" && err=13
+		[[ -f "$2" ]] && {
+			Display_tldr <"$2" && exit $err
+			Err "A file error occured"
+			exit 14
+		} || Err "No file:$I $2$XI" && exit 15 ;;
+	-m|--markdown) shift
+		page=$@
+		[[ -z $page ]] && Err "Specify a page to display" && Usage 16
+		[[ -f "$page" && ${page: -3:3} = .md ]] && Out "$(cat "$page")" && exit 0
+		markdown=1 ;;
+	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=17
 		Usage $err ;;
-	-m|--markdown) markdown=1; shift; page=$@ ;;
-	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=15
-		Usage $err ;;
-	-*) Err "Unrecognized option $I$1$XI"; Usage 16 ;;
+	-*) Err "Unrecognized option $I$1$XI"; Usage 18 ;;
 	*) page=$@ ;;
 esac
 
-[[ -f $file ]] && {
-	Display_tldr <"$file" && exit 0
-	Err "A file error occured"
-	exit 17
-}
-[[ $file ]] && Err "No file:$I $file$XI" && exit 18
 [[ -z $page ]] && Err "No command specified" && Usage 19
 [[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 20
 [[ $page == */* ]] && platform=${page%/*} && page=${page##*/}
