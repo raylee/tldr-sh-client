@@ -13,17 +13,17 @@ set +x -o pipefail
 #  Modes: Bold, Underline, Italic, Inverse
 # 'Newline' can be added to the Style list to add a newline before the element
 # and 'Space' to add a space at the start of the line (not for Value element)
-# (The style items are separated by commas, lower or uppercase, no spaces.)
-: ${TLDR_TITLE_STYLE:=Newline,Space,Bold,Yellow}
-: ${TLDR_DESCRIPTION_STYLE:=Space,Yellow}
-: ${TLDR_EXAMPLE_STYLE:=Newline,Bold,Green}
-: ${TLDR_CODE_STYLE:=Space,Bold,Blue}
-: ${TLDR_VALUE_STYLE:=Bold,Cyan}
+# (The style items are separated by space, lower or uppercase mixed allowed.)
+: ${TLDR_TITLE_STYLE:= Newline Space Bold Yellow }
+: ${TLDR_DESCRIPTION_STYLE:= Space Yellow }
+: ${TLDR_EXAMPLE_STYLE:= Newline Bold Green }
+: ${TLDR_CODE_STYLE:= Space Bold Blue }
+: ${TLDR_VALUE_STYLE:= Bold Cyan }
 # Color and/or background (Newline and Space also allowed) for error messages
-: ${TLDR_ERROR_COLOR=Red}
+: ${TLDR_ERROR_COLOR= Red }
 
 # How long before an attempt will be made to re-download a page
-: ${TLDR_EXPIRY:=60}
+: ${TLDR_EXPIRY:= 60 }
 
 Usage(){  # $1: optional exit code
 	self=$(basename $0)
@@ -56,9 +56,9 @@ Err(){ STDERR+="$ERRNL$ERRSP$ERR$B$1$XB$XERR$N";}  # $1: error message for later
 Out(){ STDOUT+="$1$N";}  # $1: message for later
 
 Style(){  # $1: Style specification
-	local style styles=${1// /}  # remove spaces
+	local style
 	STYLES= XSTYLES= COLOR= XCOLOR= NL= SP=
-	for style in ${styles//,/ }
+	for style in $1
 	do
 		[[ ${style,,} = newline ]] && NL=$N
 		[[ ${style,,} = space ]] && SP=' '
@@ -136,7 +136,7 @@ Init_term(){
 	ERR=$COLOR XERR=$XCOLOR ERRNL=$NL ERRSP=$SP
 }
 
-Recent(){ find "$1" -mtime -$TLDR_EXPIRY &>/dev/null;}  # $1: page
+Recent(){ find "$1" -mtime -${TLDR_EXPIRY// /} &>/dev/null;}  # $1: page
 
 Update_index(){
 	$DL "$index" "$index_url" && Out "${GRE}Index file $I$index$XI re-downloaded$DEF" || {
