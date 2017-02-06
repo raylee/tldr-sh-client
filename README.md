@@ -11,7 +11,7 @@ Download the tldr bash script to the install location:
 
 ```bash
 location=/usr/local/bin/tldr  # elevated privileges needed for some locations
-sudo wget -qO $location https://raw.githubusercontent.com/pepa65/tldr/master/tldr
+sudo wget -qO $location https://raw.githubusercontent.com/pepa65/tldr-bash-client/master/tldr
 sudo chmod +x $location
 ```
 

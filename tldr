@@ -52,9 +52,9 @@ Usage(){  # $1: optional exit code
 	exit $exit
 }
 
-Err(){ STDERR+="$ERRNL$ERRSP$ERR$B$1$XB$XERR$N";}  # $1: error message for later
+Err(){ STDERR+=$ERRNL$ERRSP$ERR$B$1$XB$XERR$N;}  # $1: error message for later
 
-Out(){ STDOUT+="$1$N";}  # $1: message for later
+Out(){ STDOUT+=$1$N;}  # $1: message for later
 
 Style(){  # $1: Style specification
 	local style
@@ -146,7 +146,7 @@ Update_index(){
 }
 
 Config(){  # initialize globals, sanity check the environment, etc.
-	PLATFORM=common STDOUT= STDERR="" Q='"' N=$'\n'
+	PLATFORM=common STDOUT= STDERR= Q='"' N=$'\n'
 	case $(uname -s) in
 		Darwin) PLATFORM='osx' ;;
 		Linux) PLATFORM='linux' ;;
@@ -169,7 +169,7 @@ Config(){  # initialize globals, sanity check the environment, etc.
 
 	[[ -d ~/.config ]] && configdir=~/.config/tldr || configdir=~/.tldr
 	[[ -d "$configdir" ]] || mkdir -p "$configdir"
-	index="$configdir/index.json"
+	index=$configdir/index.json
 	# if the file doesn't exists, or if it's younger than $TLDR_EXPIRY
 	[[ -f $index ]] && Recent "$index" || Update_index
 }
@@ -188,19 +188,19 @@ Get_tldr(){  # $1: page
 	[[ $desc ]] || return  # not found
 	if [[ $desc =~ \"$platform\" ]]
 	then  # user specified platform first
-		PAGE="$platform/$1.md"
+		PAGE=$platform/$1.md
 	elif [[ $desc =~ \"common\" ]]
 	then  # common platform?
-		PAGE="common/$1.md"
+		PAGE=common/$1.md
 	else  # give warning for sure now
 		# system platform, or first one listed in index
-		[[ $desc =~ \"$PLATFORM\" ]] && PAGE="$PLATFORM/$1.md" \
+		[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md \
 				|| PAGE=$(cut -d $Q -f 8 <<<"$desc")/"$1.md"
 		Err "tldr page $I$1$XI not found in $I$platform$XI or$I common$XI, page from platform $U${PAGE%/*}$XU instead"
 	fi
 
 	# return the local cached copy of the tldrpage, or retrieve and cache from github
-	CACHED="$configdir/$PAGE"
+	CACHED=$configdir/$PAGE
 	Recent "$CACHED" || {
 		mkdir -p "${CACHED%/*}"
 		$DL "$CACHED" "$base_url/$PAGE" || {
