@@ -4,9 +4,9 @@
 client for the [tldr](https://github.com/rprieto/tldr/) project, providing
 poignant examples of terminal commands.**
 
-![tldr list screenshot](tldr-list.jpg?raw=true "tldr list" | width=800)
+![tldr list screenshot](tldr-list.jpg?raw=true "tldr list" = 400x)
 
-<img src="tldr-page.jpg" width="800" title="tldr page" alt="tldr page screenshot"/>
+<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="400" />
 
 ## Installation
 Download the tldr bash script to the install location:
@@ -22,7 +22,7 @@ If the location is not in $PATH, you need to specify the path to run it.
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
 
-![tldr usage screenshot](tldr-usage.jpg?raw=true "tldr usage" | width=800)
+![tldr usage screenshot](tldr-usage.jpg?raw=true "tldr usage" | width=400)
 
 ## Customisation
 The colors and other styling of the 5 elements of tldr pages can be modified
@@ -38,14 +38,14 @@ Also the error color and page expiry can easily be set:
 * TLDR_ERROR_COLOR (defaults to: Red)
 * TLDR_EXPIRY (defaults to: 60)
 
-![tldr customize screenshot](tldr-customize.jpg?raw=true "tldr customize" | width=800)
+![tldr customize screenshot](tldr-customize.jpg?raw=true "tldr customize" {width:400px})
 
 ## Contributing
 
 Please file an issue for a question, a bug or a feature request.
 Or even better, send a pull request!
 
-![tldr markdown screenshot](tldr-markdown.jpg?raw=true "tldr markdown" {width=800px})
+![tldr markdown screenshot](tldr-markdown.jpg?raw=true "tldr markdown" {width=400px})
 
 ### License
 
