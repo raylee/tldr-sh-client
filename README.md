@@ -6,8 +6,6 @@ poignant examples of terminal commands.**
 
 <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
-<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
-
 ## Installation
 Download the tldr bash script to the install location:
 
@@ -18,6 +16,8 @@ sudo chmod +x $location
 ```
 
 If the location is not in $PATH, you need to specify the path to run it.
+
+<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
 
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
@@ -38,7 +38,6 @@ Also the error color and page expiry can easily be set:
 * TLDR_ERROR_COLOR (defaults to: Red)
 * TLDR_EXPIRY (defaults to: 60)
 
-![tldr customize screenshot](tldr-customize.jpg?raw=true "tldr customize" {width:400px})
 <img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
 
 ## Contributing
