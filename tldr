@@ -71,7 +71,6 @@ Style(){  # $1: Style specification
 }	
 
 Init_term(){
-	# Term codes with tput according to http://mywiki.wooledge.org/BashFAQ/037
 	[[ -t 2 ]] && {  # only if interactive session (stderr open)
 			B=$'\e[1m' # $(tput bold || tput md)  # Start bold
 			XB=$'\e[0m'  # End bold (no tput code...) -- needs echo -e
