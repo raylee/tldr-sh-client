@@ -3,7 +3,7 @@ set +x -o pipefail
 [[ $- == *i* ]] && echo "Don't source this script!" && return 1
 # Bash tldr client
 #  forked from Ray Lee, http://github.com/raylee/tldr
-#  modified and expanded by pepa65: http://github.com/pepa65/tldr
+#  modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
 # Requiring: coreutils, less, grep, unzip, curl/wget
 
 # The 5 elements in TLDR markup that can be styled with these colors and
