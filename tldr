@@ -1,7 +1,8 @@
 #!/bin/bash
 set +vx -o pipefail
-[[ $- == *i* ]] && echo "Don't source this script!" && return 1
-# Bash tldr client
+[[ $- = *i* ]] && echo "Don't source this script!" && return 1
+VERSION='0.1'
+# tldr-bash-client version 0.1
 #  forked from Ray Lee, http://github.com/raylee/tldr
 #  modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
 # Requiring: coreutils, less, grep, unzip, curl/wget
@@ -29,6 +30,7 @@ Usage(){  # $1: optional exit code
 	self=$(basename $0)
 	local exit=${1:-0}
 	Out "$(cat <<-EOF
+		$version
 
 		 USAGE: $GRE$B$self$XB$DEF [$YEL${B}option$XB$DEF] [$BLU${B}platform$XB/$DEF]$CYA$B<command>$XB$DEF
 
@@ -42,6 +44,7 @@ Usage(){  # $1: optional exit code
 		  $B$YEL-m$DEF,$YEL --markdown$DEF$XB $CYA$B<command>$XB$DEF:   Show the markdown source for$B$CYA command$DEF$XB
 		  $B$YEL-c$DEF,$YEL --cache$DEF$XB:                Cache all pages by downloading archive from repo
 		  $B$YEL-u$DEF,$YEL --update$DEF$XB:               Re-download index file from repo
+		  $B$YEL-v$DEF,$YEL --version$DEF$XB:              Version number and repo location
 		  [$B$YEL-h$DEF,$YEL -?$DEF,$YEL --help$DEF$XB]:           This help overview
 
 		 Element styling:$T Title$XT$D Description$XD$E Example$XD$C Code$XC$V Value$XV
@@ -155,6 +158,8 @@ Config(){  # initialize globals, sanity check the environment, etc.
 	Init_term
 	trap 'echo -ne "$STDOUT$STDERR" |less -RXMQF' EXIT
 
+	version="$GRE$B tldr-bash-client version $VERSION$XB $YEL http://github.com/pepa65/tldr-bash-client$DEF"
+
 	# Select download method
 	DL="$(type -p curl) -sfo" || {
 		DL="$(type -p wget) -qNO" || {
@@ -164,7 +169,7 @@ Config(){  # initialize globals, sanity check the environment, etc.
 	}
 
 	base_url='https://raw.githubusercontent.com/tldr-pages/tldr/master/pages'
-	zip_url='https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/tldr.zip'
+	zip_url='http://tldr-pages.github.io/assets/tldr.zip'
 	index_url='http://tldr-pages.github.io/assets/index.json'
 
 	[[ -d ~/.config ]] && configdir=~/.config/tldr || configdir=~/.tldr
@@ -305,7 +310,7 @@ arg=$1
 case "$arg" in
 	-l|--list) [[ $2 ]] && {
 			platform=$2
-			[[ ,common,linux,osx,sunos, == *,$platform,* ]] || {
+			[[ ,common,linux,osx,sunos, = *,$platform,* ]] || {
 				Err "Unknown platform $I$platform$XI"
 				Usage 8
 			}
@@ -314,37 +319,40 @@ case "$arg" in
 		List_pages $err ;;
 	-c|--cache) [[ $2 ]] && Err "No more command line arguments allowed" && err=10
 		Cache_fill $err ;;
-	-u|--update) [[ $2 ]] && Err "No more command line arguments allowed" && err=11
+	-v|--version) [[ $2 ]] && Err "No more command line arguments allowed" && err=11
+		Out "$version"
+		exit $err ;;
+	-u|--update) [[ $2 ]] && Err "No more command line arguments allowed" && err=12
 		Update_index
 		exit $err ;;
-	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 12
-		[[ $3 ]] && Err "No more command line arguments allowed" && err=13
+	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 13
+		[[ $3 ]] && Err "No more command line arguments allowed" && err=14
 		[[ -f "$2" ]] && {
 			Display_tldr <"$2" && exit $err
 			Err "A file error occured"
-			exit 14
-		} || Err "No file:$I $2$XI" && exit 15 ;;
+			exit 15
+		} || Err "No file:$I $2$XI" && exit 16 ;;
 	-m|--markdown) shift
 		page=$@
-		[[ -z $page ]] && Err "Specify a page to display" && Usage 16
+		[[ -z $page ]] && Err "Specify a page to display" && Usage 17
 		[[ -f "$page" && ${page: -3:3} = .md ]] && Out "$(cat "$page")" && exit 0
 		markdown=1 ;;
-	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=17
+	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=18
 		Usage $err ;;
-	-*) Err "Unrecognized option $I$1$XI"; Usage 18 ;;
+	-*) Err "Unrecognized option $I$1$XI"; Usage 19 ;;
 	*) page=$@ ;;
 esac
 
-[[ -z $page ]] && Err "No command specified" && Usage 19
-[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 20
-[[ $page == */* ]] && platform=${page%/*} && page=${page##*/}
+[[ -z $page ]] && Err "No command specified" && Usage 20
+[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 21
+[[ $page = */* ]] && platform=${page%/*} && page=${page##*/}
 [[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
 	Err "Unknown platform $I$platform$XI"
-	Usage 21
+	Usage 22
 }
 
 Get_tldr ${page// /-}
-[[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 22
+[[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 23
 
 ((markdown)) && Out "$(cat "$CACHED")" || Display_tldr <"$CACHED"
 # The error trap will output the accumulated stdout and stderr
