@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o pipefail
+set +vx -o pipefail
 [[ $- == *i* ]] && echo "Don't source this script!" && return 1
 # Bash tldr client
 #  forked from Ray Lee, http://github.com/raylee/tldr
@@ -20,7 +20,7 @@ set -o pipefail
 : ${TLDR_CODE_STYLE:= Space Bold Blue }
 : ${TLDR_VALUE_STYLE:= Bold Cyan }
 # Color and/or background (Newline and Space also allowed) for error messages
-: ${TLDR_ERROR_COLOR= Red }
+: ${TLDR_ERROR_COLOR= Space Red }
 
 # How long before an attempt will be made to re-download a page
 : ${TLDR_EXPIRY:= 60 }
@@ -153,7 +153,7 @@ Config(){  # initialize globals, sanity check the environment, etc.
 		SunOS) PLATFORM='sunos' ;;
 	esac
 	Init_term
-	trap 'echo -ne "$STDOUT$N$STDERR" |less -RXMQF' EXIT
+	trap 'echo -ne "$STDOUT$STDERR" |less -RXMQF' EXIT
 
 	# Select download method
 	DL="$(type -p curl) -sfo" || {
@@ -188,15 +188,15 @@ Get_tldr(){  # $1: page
 	[[ $desc ]] || return  # just not found
 
 	local err=0
-	[[ $platform ]] && {  # platform given on commandline
-		[[ $desc =~ \"$platform\" ]] && PAGE=$platform/$1.md || {
-			notfound=$I$platform$XI
-			err=1
+	if [[ $platform ]]
+	then  # platform given on commandline
+		[[ ! $desc =~ \"$platform\" ]] && notfound=$I$platform$XI && err=1 || PAGE=$platform/$1.md
+	else  # check common
+		[[ $desc =~ \"common\" ]] && PAGE=common/$1.md || {  # not in common either
+			[[ $notfound ]] && notfound+=" or "
+			notfound+=${I}common$XI
 		}
-	} || [[ $desc =~ \"common\" ]] && PAGE=common/$1.md || {  # not in common either
-		[[ $notfound ]] && notfound+=" or "
-		notfound+=${I}common$XI
-	}
+	fi
 	# if no page found yet, try the system platform
 	[[ $PAGE ]] || [[ $platform = $PLATFORM ]] || {
 			[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md
@@ -212,10 +212,7 @@ Get_tldr(){  # $1: page
 	CACHED=$configdir/$PAGE
 	Recent "$CACHED" || {
 		mkdir -p "${CACHED%/*}"
-		$DL "$CACHED" "$base_url/$PAGE" || {
-			Err "Could not download page $I$CACHED$XI from index $U$index_url$XU"
-			exit 5
-		}
+		$DL "$CACHED" "$base_url/$PAGE" || Err "Could not download page $I$CACHED$XI from index $U$index_url$XU"
 	}
 }
 
