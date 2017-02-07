@@ -1,5 +1,8 @@
 # tldr-bash-client
 
+* version 0.1
+* https://github.com/pepa65/tldr-bash-client
+
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
 client for the [tldr](https://github.com/rprieto/tldr/) project, providing
 poignant examples of terminal commands.**
