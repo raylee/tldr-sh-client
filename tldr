@@ -27,12 +27,12 @@ VERSION='0.1'
 : ${TLDR_EXPIRY:= 60 }
 
 Usage(){  # $1: optional exit code
-	self=$(basename $0)
+	SELF=$(basename $0)
 	local exit=${1:-0}
 	Out "$(cat <<-EOF
 		$version
 
-		 USAGE: $GRE$B$self$XB$DEF [$YEL${B}option$XB$DEF] [$BLU${B}platform$XB/$DEF]$CYA$B<command>$XB$DEF
+		 USAGE: $GRE$B$SELF$XB$DEF [$YEL${B}option$XB$DEF] [$BLU${B}platform$XB/$DEF]$CYA$B<command>$XB$DEF
 
 		$BLU$B platform$XB/$CYA${B}command$XB$DEF:           Show page for$CYA$B command$XB$DEF (from$BLU$B platform$XB$DEF)
 
@@ -225,6 +225,7 @@ Display_tldr(){
 	# read one line at a time, don't strip whitespace ('IFS='), and
 	# process last line even if it doesn't have a newline at the end
 	L=0
+	local newfmt len line
 	while read -r || [[ $REPLY ]]
 	do
 		((++L))
@@ -279,20 +280,23 @@ Display_tldr(){
 }
 
 List_pages(){  # $1: exit code
-	[[ $platform ]] && platf=" from platform $I$platform$XI"
-	Out "${GRE}Known tldr pages$platf:"
+	local platformtext
+	[[ $platform ]] && platformtext=" from platform $I$platform$XI"
+	Out "${GRE}Known tldr pages$platformtext:"
 	Out "$(while read c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" $c1 $c2 $c3; done \
-			<<<$(tr '{' '\n' <"$configdir/index.json" |grep "$platform" |cut -d $Q -f4))"
+			<<<$(tr '{' '\n' <"$index" |grep "$platform" |cut -d $Q -f4))"
 	exit $1
 }
 
 Cache_fill(){  # $1: exit code
-	tmp=$(mktemp -d)
+	local tmp=$(mktemp -d)
 	$DL "$tmp/pages.zip" "$zip_url" || {
+		rm -- "$tmp"
 		Err "Could not download pages archive from $U$zip_url$XU"
 		exit 6
 	}
 	unzip="$(type -p unzip) -q" || {
+		rm -- "$tmp"
 		Err "Unzip is necessary to fill the cache"
 		exit 7
 	}
