@@ -1,5 +1,5 @@
 #!/bin/bash
-set +x -o pipefail
+set -o pipefail
 [[ $- == *i* ]] && echo "Don't source this script!" && return 1
 # Bash tldr client
 #  forked from Ray Lee, http://github.com/raylee/tldr
@@ -187,7 +187,7 @@ Get_tldr(){  # $1: page
 
 	[[ $desc ]] || return  # just not found
 
-	err=0
+	local err=0
 	[[ $platform ]] && {  # platform given on commandline
 		[[ $desc =~ \"$platform\" ]] && PAGE=$platform/$1.md || {
 			notfound=$I$platform$XI
@@ -198,8 +198,9 @@ Get_tldr(){  # $1: page
 		notfound+=${I}common$XI
 	}
 	# if no page found yet, try the system platform
-	[[ $PAGE ]] || [[ $platform = $PLATFORM ]] || \
-			[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md || {
+	[[ $PAGE ]] || [[ $platform = $PLATFORM ]] || {
+			[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md
+	} || {
 		notfound+=" or $I$PLATFORM$XI"
 		err=1
 	}
