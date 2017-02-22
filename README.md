@@ -7,8 +7,7 @@
 client for the [tldr](https://github.com/rprieto/tldr/) project, providing
 poignant examples of terminal commands.**
 
-[//]: # <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
-<img alt="tldr list GIF" src="tldr-list.gif" title="tldr list" />
+<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
 This client can render both the old and the new tldr markup format.
 
@@ -23,7 +22,9 @@ sudo chmod +x $location
 
 If the location is not in $PATH, you need to specify the path to run it.
 
-<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
+<img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
+{::comment}<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
+{{:/comment}
 
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
