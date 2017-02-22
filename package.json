@@ -1,0 +1,9 @@
+{
+  "name": "tldr-bash-client",
+  "version": "0.1a",
+  "description": "A fully-functional bash client for the tldr project, providing poignant examples of terminal commands",
+  "global": "true",
+  "install": "make install",
+  "uninstall": "make uninstall",
+  "scripts": [ "tldr" ]
+}
