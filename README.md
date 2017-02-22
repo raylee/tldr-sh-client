@@ -51,7 +51,7 @@ Also the error color and page expiry can easily be set:
 Please file an issue for a question, a bug or a feature request.
 Or even better, send a pull request!
 
-[This tldr-bash-client github page](http://github.com/pepa65/tldr-bash-client "github.com/pepa65/tldr-bash-client")
+[tldr-bash-client github page](http://github.com/pepa65/tldr-bash-client "github.com/pepa65/tldr-bash-client")
 
 <img alt="tldr markdown screenshot" src="tldr-markdown.jpg" title="tldr markdown" width="600" />
 

@@ -55,9 +55,9 @@ Usage(){  # $1: optional exit code
 	exit $exit
 }
 
-Err(){ STDERR+=$ERRNL$ERRSP$ERR$B$1$XB$XERR$N;}  # $1: keep error messages
+Err(){ STDERR+=$ERRNL$ERRSP$ERR$B$1$XB$XERR$N;}  # $1: error message for later
 
-Out(){ STDOUT+=$1$N;}  # $1: keep output
+Out(){ STDOUT+=$1$N;}  # $1: message for later
 
 Style(){  # $1: Style specification
 	local style
@@ -76,7 +76,7 @@ Style(){  # $1: Style specification
 Init_term(){
 	[[ -t 2 ]] && {  # only if interactive session (stderr open)
 			B=$'\e[1m' # $(tput bold || tput md)  # Start bold
-			XB=$'\e[0m'  # End bold (no tput code...)
+			XB=$'\e[0m'  # End bold (no tput code...) -- needs echo -e
 			U=$'\e[4m' # $(tput smul || tput us)  # Start underline
 			XU=$'\e[24m' # $(tput rmul || tput ue)  # End underline
 			I=$'\e[3m' # $(tput sitm || tput ZH)  # Start italic
@@ -118,7 +118,7 @@ Init_term(){
 	declare -A mode=(['bold']=$B ['underline']=$U ['italic']=$I ['inverse']=$R)
 	declare -A xmode=(['bold']=$XB ['underline']=$XU ['italic']=$XI ['inverse']=$XR)
 
-	# the 5 main tldr page styles and error message colors
+	# the five main tldr page styles and error message colors
 	Style "$TLDR_TITLE_STYLE"
 	T=$STYLES XT=$XSTYLES TNL=$NL TSP=$SP
 	Style "$TLDR_DESCRIPTION_STYLE"
@@ -135,14 +135,14 @@ Init_term(){
 
 Recent(){ find "$1" -mtime -${TLDR_EXPIRY// /} &>/dev/null;}  # $1: page
 
-Update_index(){  # Download index.json
+Update_index(){
 	$DL "$index" "$index_url" && Out "${GRE}Index file $I$index$XI re-downloaded$DEF" || {
 		Err "Could not download index from $I$index_url$XI"
 		exit 2
 	}
 }
 
-Config(){  # Initialize globals, check the environment
+Config(){  # initialize globals, sanity check the environment, etc.
 	PLATFORM=common STDOUT= STDERR= Q='"' N=$'\n'
 	case $(uname -s) in
 		Darwin) PLATFORM='osx' ;;
@@ -150,7 +150,7 @@ Config(){  # Initialize globals, check the environment
 		SunOS) PLATFORM='sunos' ;;
 	esac
 	Init_term
-	trap 'less -RXQFP"Press Q to exit " <<<"$STDOUT$STDERR"' EXIT
+	trap 'echo -ne "$STDOUT$STDERR" |less -RXQFP"%db/%D  Press Q to exit "' EXIT
 
 	version="$GRE$B tldr-bash-client version $VERSION$XB $YEL http://github.com/pepa65/tldr-bash-client$DEF"
 
@@ -271,7 +271,6 @@ Display_tldr(){
 				Out "$ENL$EPS$E$REPLY$XE" ;;
 		esac
 	done
-	trap 'less +Gg -RXQFP"%pB\% tldr $I$page$XI - press Q to exit" <<<"$STDOUT$STDERR"' EXIT
 }
 
 List_pages(){  # $1: exit code
