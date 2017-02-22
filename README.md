@@ -22,6 +22,9 @@ sudo chmod +x $location
 
 If the location is not in $PATH, you need to specify the path to run it.
 
+Alternately, you can do `sudo bpkg-install pepa65/tldr` if you have
+[bpkg](https://github.com/bpkg/bpkg) installed.
+
 <img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
 [](<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />)
 
