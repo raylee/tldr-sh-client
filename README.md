@@ -24,7 +24,7 @@ If the location is not in $PATH, you need to specify the path to run it.
 
 <img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
 {::comment}<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
-{{:/comment}
+{:/comment}
 
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
