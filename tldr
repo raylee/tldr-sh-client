@@ -13,7 +13,7 @@ VERSION='0.1a'
 #  Colors: Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
 #  BG: BlackBG, RedBG, GreenBG, YellowBG, BlueBG, MagentaBG, CyanBG, WhiteBG
 #  Modes: Bold, Underline, Italic, Inverse
-# 'Newline' can be added to the Style list to add a newline before the element
+# 'Newline' can be added to the style list to add a newline before the element
 # and 'Space' to add a space at the start of the line (not for Value element)
 # (The style items are separated by space, lower or uppercase mixed allowed.)
 : ${TLDR_TITLE_STYLE:= Newline Space Bold Yellow }
@@ -22,13 +22,13 @@ VERSION='0.1a'
 : ${TLDR_CODE_STYLE:= Space Bold Blue }
 : ${TLDR_VALUE_STYLE:= Space Bold Cyan }
 # Color and/or background (Newline and Space also allowed) for error messages
-: ${TLDR_ERROR_COLOR= Space Red }
+: ${TLDR_ERROR_COLOR:= Space Red }
 
 # How long before an attempt will be made to re-download a page
 : ${TLDR_EXPIRY:= 60 }
 
 Usage(){  # $1: optional exit code
-	SELF=$(basename $0)
+	SELF=$(basename "$0")
 	local exit=${1:-0}
 	Out "$(cat <<-EOF
 		$version
@@ -53,7 +53,7 @@ Usage(){  # $1: optional exit code
 		 By default, the cached copies will be re-downloaded after $YEL${TLDR_EXPIRY// /}$DEF days.
 		EOF
 	)"
-	exit $exit
+	exit "$exit"
 }
 
 Err(){ STDERR+=$ERRNL$ERRSP$ERR$B$1$XB$XERR$N;}  # $1: keep error messages
@@ -62,7 +62,7 @@ Out(){ STDOUT+=$1$N;}  # $1: keep output
 
 Style(){  # $1: Style specification
 	local style
-	STYLES= XSTYLES= COLOR= XCOLOR= NL= SP=
+	STYLES='' XSTYLES='' COLOR='' XCOLOR='' NL='' SP=''
 	for style in $1
 	do
 		[[ ${style,,} = newline ]] && NL=$N
@@ -134,7 +134,7 @@ Init_term(){
 	ERR=$COLOR XERR=$XCOLOR ERRNL=$NL ERRSP=$SP
 }
 
-Recent(){ find "$1" -mtime -${TLDR_EXPIRY// /} &>/dev/null;}  # $1: page
+Recent(){ find "$1" -mtime -"${TLDR_EXPIRY// /}" &>/dev/null;}  # $1: page
 
 Update_index(){  # Download index.json
 	$DL "$index" "$index_url" && Out "${GRE}Index file $I$index$XI re-downloaded$DEF" || {
@@ -144,8 +144,8 @@ Update_index(){  # Download index.json
 }
 
 Config(){  # Initialize globals, check the environment
-	PLATFORM=common STDOUT= STDERR= Q='"' N=$'\n'
-	case $(uname -s) in
+	PLATFORM=common STDOUT='' STDERR='' Q='"' N=$'\n'
+	case "$(uname -s)" in
 		Darwin) PLATFORM='osx' ;;
 		Linux) PLATFORM='linux' ;;
 		SunOS) PLATFORM='sunos' ;;
@@ -198,14 +198,14 @@ Get_tldr(){  # $1: page
 		}
 	fi
 	# if no page found yet, try the system platform
-	[[ $PAGE ]] || [[ $platform = $PLATFORM ]] || {
+	[[ $PAGE ]] || [[ $platform = "$PLATFORM" ]] || {
 			[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md
 	} || {
 		notfound+=" or $I$PLATFORM$XI"
 		err=1
 	}
 	# if still no page found, get the first entry in index
-	[[ $PAGE ]] || PAGE=$(cut -d $Q -f 8 <<<"$desc")/"$1.md"
+	[[ $PAGE ]] || PAGE=$(cut -d "$Q" -f 8 <<<"$desc")/"$1.md"
 	((err)) && Err "tldr page $I$1$XI not found in $notfound, page from platform $U${PAGE%/*}$XU instead"
 
 	# return the local cached copy of the tldrpage, or retrieve and cache from github
@@ -236,7 +236,7 @@ Display_tldr(){
 				read -r; ((++L))
 			}
 		}
-		case ${REPLY:0:1} in  # first character
+		case "${REPLY:0:1}" in  # first character
 			'#') ((newfmt)) && Unlinted "Bad first character"
 				((${#REPLY} <= 2)) && Unlinted "No title"
 				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
@@ -245,7 +245,7 @@ Display_tldr(){
 				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
 				[[ ! ${REPLY: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
 				Out "$DNL$DSP$D${REPLY:2}$XD"
-				DNL= ;;
+				DNL='' ;;
 			'-') ((newfmt)) && Unlinted "Bad first character"
 				((${#REPLY} <= 2)) && Unlinted "No example content"
 				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
@@ -279,9 +279,9 @@ List_pages(){  # $1: exit code
 	local platformtext
 	[[ $platform ]] && platformtext=" from platform $I$platform$XI"
 	Out "${GRE}Known tldr pages$platformtext:"
-	Out "$(while read c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" $c1 $c2 $c3; done \
-			<<<$(tr '{' '\n' <"$index" |grep "$platform" |cut -d $Q -f4))"
-	exit $1
+	Out "$(while read -r c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" "$c1" "$c2" "$c3"; done \
+			<<<$(tr '{' '\n' <"$index" |grep "$platform" |cut -d "$Q" -f4))"
+	exit "$1"
 }
 
 Cache_fill(){  # $1: exit code
@@ -297,11 +297,11 @@ Cache_fill(){  # $1: exit code
 		exit 7
 	}
 	$unzip "$tmp/pages.zip" -d "$tmp" 'pages/*'
-	rm -rf -- "$configdir/"*
-	mv -- "$tmp/pages/"* "$configdir/"
+	rm -rf -- "${configdir:?}/"*
+	mv -- "$tmp/pages/"* "${configdir:?}/"
 	rm -rf -- "$tmp"
 	Out "${GRE}Pages cached in $U$configdir$XU$DEF"
-	exit $1
+	exit "$1"
 }
 
 Config
@@ -316,31 +316,31 @@ case "$arg" in
 			}
 			[[ $3 ]] && Err "No more command line arguments allowed" && err=9
 		}
-		List_pages $err ;;
+		List_pages "$err" ;;
 	-c|--cache) [[ $2 ]] && Err "No more command line arguments allowed" && err=10
-		Cache_fill $err ;;
+		Cache_fill "$err" ;;
 	-v|--version) [[ $2 ]] && Err "No more command line arguments allowed" && err=11
 		Out "$version"
-		exit $err ;;
+		exit "$err" ;;
 	-u|--update) [[ $2 ]] && Err "No more command line arguments allowed" && err=12
 		Update_index
-		exit $err ;;
+		exit "$err" ;;
 	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 13
 		[[ $3 ]] && Err "No more command line arguments allowed" && err=14
 		[[ -f "$2" ]] && {
-			Display_tldr <"$2" && exit $err
+			Display_tldr <"$2" && exit "$err"
 			Err "A file error occured"
 			exit 15
 		} || Err "No file:$I $2$XI" && exit 16 ;;
 	-m|--markdown) shift
-		page=$@
+		page=$*
 		[[ -z $page ]] && Err "Specify a page to display" && Usage 17
 		[[ -f "$page" && ${page: -3:3} = .md ]] && Out "$(cat "$page")" && exit 0
 		markdown=1 ;;
 	''|-h|-\?|--help) [[ $2 ]] && Err "No more command line arguments allowed" && err=18
-		Usage $err ;;
+		Usage "$err" ;;
 	-*) Err "Unrecognized option $I$1$XI"; Usage 19 ;;
-	*) page=$@ ;;
+	*) page=$* ;;
 esac
 
 [[ -z $page ]] && Err "No command specified" && Usage 20
@@ -351,7 +351,7 @@ esac
 	Usage 22
 }
 
-Get_tldr ${page// /-}
+Get_tldr "${page// /-}"
 [[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 23
 
 ((markdown)) && Out "$(cat "$CACHED")" || Display_tldr <"$CACHED"
