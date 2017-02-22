@@ -3,6 +3,7 @@
 * version 0.1a
 * https://github.com/pepa65/tldr-bash-client
 
+### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
 client for the [tldr](https://github.com/rprieto/tldr/) project, providing
 poignant examples of terminal commands.**

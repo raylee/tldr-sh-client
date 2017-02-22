@@ -1,7 +1,7 @@
 {
   "name": "tldr-bash-client",
   "version": "0.1a",
-  "description": "A fully-functional bash client for the tldr project, providing poignant examples of terminal commands",
+  "description": "Bash client for tldr: community driven man-by-example",
   "global": "true",
   "install": "make install",
   "uninstall": "make uninstall",

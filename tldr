@@ -3,8 +3,7 @@ set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
 VERSION='0.1a'
 # tldr-bash-client version 0.1a
-# A fully-functional bash client for the tldr project, providing
-# poignant examples of terminal commands.
+# Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, http://github.com/raylee/tldr
 # - modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
 # Requiring: coreutils, less, grep, unzip, curl/wget
