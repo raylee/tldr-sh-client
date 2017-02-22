@@ -1,8 +1,8 @@
 #!/bin/bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-VERSION='0.1'
-# tldr-bash-client version 0.1
+VERSION='0.1a'
+# tldr-bash-client version 0.1a
 #  forked from Ray Lee, http://github.com/raylee/tldr
 #  modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
 # Requiring: coreutils, less, grep, unzip, curl/wget
@@ -254,7 +254,7 @@ Display_tldr(){
 			'-') ((newfmt)) && Unlinted "Bad first character"
 				((${#REPLY} <= 2)) && Unlinted "No example content"
 				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				Out "$ENL$EPS$E$REPLY$XE" ;;
+				Out "$ENL$EPS$E ${REPLY:2}$XE" ;;
 			' ') ((newfmt)) || Unlinted "Bad first character"
 				((${#REPLY} <= 4)) && Unlinted "No valid code content"
 				[[ ${REPLY:0:4} = '    ' ]] || Unlinted "No four spaces before code"
@@ -274,7 +274,7 @@ Display_tldr(){
 			'') continue ;;
 			*) ((newfmt)) || Unlinted "Bad first character"
 				[[ -z $REPLY ]] && Unlinted "No example content"
-				Out "$ENL$EPS$E- $REPLY$XE" ;;
+				Out "$ENL$EPS$E $REPLY$XE" ;;
 		esac
 	done
 }

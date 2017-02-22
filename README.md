@@ -1,13 +1,14 @@
 # tldr-bash-client
 
-* version 0.1
+* version 0.1a
 * https://github.com/pepa65/tldr-bash-client
 
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
 client for the [tldr](https://github.com/rprieto/tldr/) project, providing
 poignant examples of terminal commands.**
 
-<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+[//]: # <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+<img alt="tldr list GIF" src="tldr-list.gif" title="tldr list" />
 
 This client can render both the old and the new tldr markup format.
 
