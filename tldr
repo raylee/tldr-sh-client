@@ -1,8 +1,8 @@
 #!/bin/bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.1a'
-# tldr-bash-client version 0.1a
+version='0.2'
+# tldr-bash-client version 0.2
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, http://github.com/raylee/tldr
 # - modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
@@ -27,7 +27,7 @@ version='0.1a'
 # How long before an attempt will be made to re-download a page
 : "${TLDR_EXPIRY:= 60 }"
 
-# $1: [optional] exit code; Uses: version configdir
+# $1: [optional] exit code; Uses: version cachedir
 Usage(){
 	Out "$(cat <<-EOF
 		$version
@@ -48,7 +48,7 @@ Usage(){
 		  [$B$YEL-h$DEF,$YEL -?$DEF,$YEL --help$DEF$XB]:           This help overview
 
 		 Element styling:$T Title$XT$D Description$XD$E Example$XD$C Code$XC$V Value$XV
-		 All pages and the index are cached locally under $YEL$configdir$DEF.
+		 All pages and the index are cached locally under $YEL$cachedir$DEF.
 		 By default, the cached copies will be re-downloaded after $YEL${TLDR_EXPIRY// /}$DEF days.
 		EOF
 	)"
@@ -148,7 +148,7 @@ Update_index(){
 	}
 }
 
-# Initialize globals, check the environment; Uses: config configdir version
+# Initialize globals, check the environment; Uses: config cachedir version
 # Sets: stdout stderr os version dl
 Config(){
 	os=common stdout='' stderr='' Q='"' N=$'\n'
@@ -158,7 +158,7 @@ Config(){
 		SunOS) os='sunos' ;;
 	esac
 	Init_term
-	trap 'less -RXQFP"Press Q to exit " <<<"$stdout$stderr"' EXIT
+	trap 'less -~RXQFP"Press Q to exit " <<<"$stdout$stderr"' EXIT
 
 	version="$GRE$B tldr-bash-client version $version$XB $YEL http://github.com/pepa65/tldr-bash-client$DEF"
 
@@ -174,9 +174,9 @@ Config(){
 	zip_url='http://tldr-pages.github.io/assets/tldr.zip'
 	index_url='http://tldr-pages.github.io/assets/index.json'
 
-	[[ -d ~/.config ]] && configdir=~/.config/tldr || configdir=~/.tldr
-	[[ -d "$configdir" ]] || mkdir -p "$configdir"
-	index=$configdir/index.json
+	[[ -d ~/.config ]] && cachedir=~/.config/tldr || cachedir=~/.tldr
+	[[ -d "$cachedir" ]] || mkdir -p "$cachedir"
+	index=$cachedir/index.json
 	# update if the file doesn't exists, or if it's older than $TLDR_EXPIRY
 	[[ -f $index ]] && Recent "$index" || Update_index
 }
@@ -187,7 +187,7 @@ Unlinted(){
 	exit 4
 }
 
-# $1: page; Uses: index index_url configdir base_url platform os dl cached md
+# $1: page; Uses: index index_url cachedir base_url platform os dl cached md
 # Sets: cached md
 Get_tldr(){
 	local desc err notfound
@@ -220,7 +220,7 @@ Get_tldr(){
 	((err)) && Err "tldr page $I$1$XI not found in $notfound, page from platform $U${md%/*}$XU instead"
 
 	# return the local cached copy of the tldrpage, or retrieve and cache from github
-	cached=$configdir/$md
+	cached=$cachedir/$md
 	Recent "$cached" || {
 		mkdir -p "${cached%/*}"
 		$dl "$cached" "$base_url/$md" || Err "Could not download page $I$cached$XI from index $U$index_url$XU"
@@ -283,7 +283,7 @@ Display_tldr(){
 				Out "$ENL$EPS$E$line$XE" ;;
 		esac
 	done
-	trap 'less +Gg -RXQFP"%pB\% tldr $I$page$XI - press Q to exit" <<<"$stdout$stderr"' EXIT
+	trap 'less +Gg -~RXQFP"%pB\% tldr $I$page$XI - press Q to exit" <<<"$stdout$stderr"' EXIT
 }
 
 # $1: exit code; Uses: platform index
@@ -291,12 +291,12 @@ List_pages(){
 	local platformtext c1 c2 c3
 	[[ $platform ]] && platformtext=" from platform $I$platform$XI"
 	Out "${GRE}Known tldr pages$platformtext:"
-	Out "$(while read -r c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" "$c1" "$c2" "$c3"; done \
+	Out "$(while read -r c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" $c1 $c2 $c3; done \
 			<<<$(tr '{' '\n' <$index |grep "$platform" |cut -d "$Q" -f4))"
 	exit "$1"
 }
 
-# $1: exit code; Uses: dl configdir zip_url
+# $1: exit code; Uses: dl cachedir zip_url
 Cache_fill(){
 	local tmp unzip
 	tmp=$(mktemp -d)
@@ -311,16 +311,19 @@ Cache_fill(){
 		exit 7
 	}
 	$unzip "$tmp/pages.zip" -d "$tmp" 'pages/*'
-	rm -rf -- "${configdir:?}/"*
-	mv -- "$tmp/pages/"* "${configdir:?}/"
+	rm -rf -- "${cachedir:?}/"*
+	mv -- "$tmp/pages/"* "${cachedir:?}/"
 	rm -rf -- "$tmp"
-	Out "${GRE}Pages cached in $U$configdir$XU$DEF"
+	Out "${GRE}Pages cached in $U$cachedir$XU$DEF"
 	exit "$1"
 }
 
-Config
-markdown=0 err=0 arg=$1
-case "$arg" in
+# $@: commandline parameters; Uses: version cached; Sets: platform page
+Main(){
+	local markdown err
+	Config
+	markdown=0 err=0
+	case "$1" in
 	-l|--list) [[ $2 ]] && {
 			platform=$2
 			[[ ,common,linux,osx,sunos, = *,$platform,* ]] || {
@@ -354,19 +357,22 @@ case "$arg" in
 		Usage "$err" ;;
 	-*) Err "Unrecognized option $I$1$XI"; Usage 19 ;;
 	*) page=$* ;;
-esac
+	esac
 
-[[ -z $page ]] && Err "No command specified" && Usage 20
-[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 21
-[[ $page = */* ]] && platform=${page%/*} && page=${page##*/}
-[[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
-	Err "Unknown platform $I$platform$XI"
-	Usage 22
+	[[ -z $page ]] && Err "No command specified" && Usage 20
+	[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 21
+	[[ $page = */* ]] && platform=${page%/*} && page=${page##*/}
+	[[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
+		Err "Unknown platform $I$platform$XI"
+		Usage 22
+	}
+
+	Get_tldr "${page// /-}"
+	[[ ! -s $cached ]] && Err "tldr page for command $I$page$XI not found" && exit 23
+
+	((markdown)) && Out "$(cat "$cached")" || Display_tldr <"$cached"
 }
 
-Get_tldr "${page// /-}"
-[[ ! -s $cached ]] && Err "tldr page for command $I$page$XI not found" && exit 23
-
-((markdown)) && Out "$(cat "$cached")" || Display_tldr <"$cached"
+Main "$@"
 # The error trap will output the accumulated stdout and stderr
 exit 0
