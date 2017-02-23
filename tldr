@@ -1,7 +1,7 @@
 #!/bin/bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-VERSION='0.1a'
+version='0.1a'
 # tldr-bash-client version 0.1a
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, http://github.com/raylee/tldr
@@ -16,24 +16,23 @@ VERSION='0.1a'
 # 'Newline' can be added to the style list to add a newline before the element
 # and 'Space' to add a space at the start of the line (not for Value element)
 # (The style items are separated by space, lower or uppercase mixed allowed.)
-: ${TLDR_TITLE_STYLE:= Newline Space Bold Yellow }
-: ${TLDR_DESCRIPTION_STYLE:= Space Yellow }
-: ${TLDR_EXAMPLE_STYLE:= Newline Space Bold Green }
-: ${TLDR_CODE_STYLE:= Space Bold Blue }
-: ${TLDR_VALUE_STYLE:= Space Bold Cyan }
+: "${TLDR_TITLE_STYLE:= Newline Space Bold Yellow }"
+: "${TLDR_DESCRIPTION_STYLE:= Space Yellow }"
+: "${TLDR_EXAMPLE_STYLE:= Newline Space Bold Green }"
+: "${TLDR_CODE_STYLE:= Space Bold Blue }"
+: "${TLDR_VALUE_STYLE:= Space Bold Cyan }"
 # Color and/or background (Newline and Space also allowed) for error messages
-: ${TLDR_ERROR_COLOR:= Space Red }
+: "${TLDR_ERROR_COLOR:= Newline Space Red }"
 
 # How long before an attempt will be made to re-download a page
-: ${TLDR_EXPIRY:= 60 }
+: "${TLDR_EXPIRY:= 60 }"
 
-Usage(){  # $1: optional exit code
-	SELF=$(basename "$0")
-	local exit=${1:-0}
+# $1: [optional] exit code; Uses: version configdir
+Usage(){
 	Out "$(cat <<-EOF
 		$version
 
-		 USAGE: $GRE$B$SELF$XB$DEF [$YEL${B}option$XB$DEF] [$BLU${B}platform$XB/$DEF]$CYA$B<command>$XB$DEF
+		 USAGE: $GRE$B$(basename "$0")$XB$DEF [$YEL${B}option$XB$DEF] [$BLU${B}platform$XB/$DEF]$CYA$B<command>$XB$DEF
 
 		$BLU$B platform$XB/$CYA${B}command$XB$DEF:           Show page for$CYA$B command$XB$DEF (from$BLU$B platform$XB$DEF)
 
@@ -53,27 +52,31 @@ Usage(){  # $1: optional exit code
 		 By default, the cached copies will be re-downloaded after $YEL${TLDR_EXPIRY// /}$DEF days.
 		EOF
 	)"
-	exit "$exit"
+	exit "${1:-0}"
 }
 
-Err(){ STDERR+=$ERRNL$ERRSP$ERR$B$1$XB$XERR$N;}  # $1: keep error messages
+# $1: keep error messages; Uses/Sets: stderr
+Err(){ stderr+=$ERRNL$ERRSP$ERR$B$1$XB$XERR$N;}
 
-Out(){ STDOUT+=$1$N;}  # $1: keep output
+# $1: keep output; Uses/Sets: stdout
+Out(){ stdout+=$1$N;}
 
-Style(){  # $1: Style specification
-	local style
+# $1: Style specification; Uses: color xcolor bg xbg mode xmode
+Style(){
+	local -l style
 	STYLES='' XSTYLES='' COLOR='' XCOLOR='' NL='' SP=''
 	for style in $1
 	do
-		[[ ${style,,} = newline ]] && NL=$N
-		[[ ${style,,} = space ]] && SP=' '
-		COLOR+=${color[${style,,}]:-}${bg[${style,,}]:-}
-		XCOLOR=${xbg[${style,,}]:-}${xcolor[${style,,}]:-}$XCOLOR
-		STYLES+=${color[${style,,}]:-}${bg[${style,,}]:-}${mode[${style,,}]:-}
-		XSTYLES=${xmode[${style,,}]:-}${xbg[${style,,}]:-}${xcolor[${style,,}]:-}$XSTYLES
+		[[ $style = newline ]] && NL=$N
+		[[ $style = space ]] && SP=' '
+		COLOR+=${color[$style]:-}${bg[$style]:-}
+		XCOLOR=${xbg[$style]:-}${xcolor[$style]:-}$XCOLOR
+		STYLES+=${color[$style]:-}${bg[$style]:-}${mode[$style]:-}
+		XSTYLES=${xmode[$style]:-}${xbg[$style]:-}${xcolor[$style]:-}$XSTYLES
 	done
 }	
 
+# Sets: color xcolor bg xbg mode xmode
 Init_term(){
 	[[ -t 2 ]] && {  # only if interactive session (stderr open)
 			B=$'\e[1m' # $(tput bold || tput md)  # Start bold
@@ -84,7 +87,7 @@ Init_term(){
 			XI=$'\e[23m' # $(tput ritm || tput ZR)  # End italic
 			R=$'\e[7m' # $(tput smso || tput so)  # Start reverse
 			XR=$'\e[27m' # $(tput rmso || tput se)  # End reverse
-			X=$'\e[0m' # $(tput sgr0 || tput me)  # End all
+			#X=$'\e[0m' # $(tput sgr0 || tput me)  # End all
 
 		[[ $TERM != *-m ]] && {
 				BLA=$'\e[30m' # $(tput setaf 0 || tput AF 0)
@@ -134,30 +137,34 @@ Init_term(){
 	ERR=$COLOR XERR=$XCOLOR ERRNL=$NL ERRSP=$SP
 }
 
-Recent(){ find "$1" -mtime -"${TLDR_EXPIRY// /}" &>/dev/null;}  # $1: page
+# $1: page
+Recent(){ find "$1" -mtime -"${TLDR_EXPIRY// /}" >/dev/null 2>&1;}
 
-Update_index(){  # Download index.json
-	$DL "$index" "$index_url" && Out "${GRE}Index file $I$index$XI re-downloaded$DEF" || {
+# Download index.json; Uses: index index_url base_url zip_url dl
+Update_index(){
+	$dl "$index" "$index_url" && Out "${GRE}Index file $I$index$XI re-downloaded$DEF" || {
 		Err "Could not download index from $I$index_url$XI"
 		exit 2
 	}
 }
 
-Config(){  # Initialize globals, check the environment
-	PLATFORM=common STDOUT='' STDERR='' Q='"' N=$'\n'
+# Initialize globals, check the environment; Uses: config configdir version
+# Sets: stdout stderr os version dl
+Config(){
+	os=common stdout='' stderr='' Q='"' N=$'\n'
 	case "$(uname -s)" in
-		Darwin) PLATFORM='osx' ;;
-		Linux) PLATFORM='linux' ;;
-		SunOS) PLATFORM='sunos' ;;
+		Darwin) os='osx' ;;
+		Linux) os='linux' ;;
+		SunOS) os='sunos' ;;
 	esac
 	Init_term
-	trap 'less -RXQFP"Press Q to exit " <<<"$STDOUT$STDERR"' EXIT
+	trap 'less -RXQFP"Press Q to exit " <<<"$stdout$stderr"' EXIT
 
-	version="$GRE$B tldr-bash-client version $VERSION$XB $YEL http://github.com/pepa65/tldr-bash-client$DEF"
+	version="$GRE$B tldr-bash-client version $version$XB $YEL http://github.com/pepa65/tldr-bash-client$DEF"
 
 	# Select download method
-	DL="$(type -p curl) -sfo" || {
-		DL="$(type -p wget) -qNO" || {
+	dl="$(type -p curl) -sfo" || {
+		dl="$(type -p wget) -qNO" || {
 			Err "tldr requires$I curl$XI or$I wget $XI installed in your path"
 			exit 3
 		}
@@ -174,119 +181,126 @@ Config(){  # Initialize globals, check the environment
 	[[ -f $index ]] && Recent "$index" || Update_index
 }
 
-Unlinted(){  # $1: error message
-	Err "Page $I$PAGE$XI not properly linted!\nLine $I$L$XI:[$U$REPLY$XU]$N$ERR$B$1"
+# $1: error message; Uses: md line ln
+Unlinted(){
+	Err "Page $I$md$XI not properly linted!\nLine $I$ln$XI:[$U$line$XU]$N$ERR$B$1"
 	exit 4
 }
 
-Get_tldr(){  # $1: page
+# $1: page; Uses: index index_url configdir base_url platform os dl cached md
+# Sets: cached md
+Get_tldr(){
+	local desc err notfound
 	# convert the local platform name to tldr's version
 	# extract the platform key from index.json, return preferred subpath to page
-	local desc=$(tr '{' '\n' <$index |grep "\"name\":\"$1\"")
+	desc=$(tr '{' '\n' <$index |grep "\"name\":\"$1\"")
 	# results in, eg, "name":"netstat","platform":["linux","osx"]},
 
 	[[ $desc ]] || return  # just not found
 
-	local err=0
+	err=0
 	if [[ $platform ]]
 	then  # platform given on commandline
-		[[ ! $desc =~ \"$platform\" ]] && notfound=$I$platform$XI && err=1 || PAGE=$platform/$1.md
+		[[ ! $desc =~ \"$platform\" ]] && notfound=$I$platform$XI && err=1 || md=$platform/$1.md
 	else  # check common
-		[[ $desc =~ \"common\" ]] && PAGE=common/$1.md || {  # not in common either
+		[[ $desc =~ \"common\" ]] && md=common/$1.md || {  # not in common either
 			[[ $notfound ]] && notfound+=" or "
 			notfound+=${I}common$XI
 		}
 	fi
 	# if no page found yet, try the system platform
-	[[ $PAGE ]] || [[ $platform = "$PLATFORM" ]] || {
-			[[ $desc =~ \"$PLATFORM\" ]] && PAGE=$PLATFORM/$1.md
+	[[ $md ]] || [[ $platform = "$os" ]] || {
+			[[ $desc =~ \"$os\" ]] && md=$os/$1.md
 	} || {
-		notfound+=" or $I$PLATFORM$XI"
+		notfound+=" or $I$os$XI"
 		err=1
 	}
 	# if still no page found, get the first entry in index
-	[[ $PAGE ]] || PAGE=$(cut -d "$Q" -f 8 <<<"$desc")/"$1.md"
-	((err)) && Err "tldr page $I$1$XI not found in $notfound, page from platform $U${PAGE%/*}$XU instead"
+	[[ $md ]] || md=$(cut -d "$Q" -f 8 <<<"$desc")/"$1.md"
+	((err)) && Err "tldr page $I$1$XI not found in $notfound, page from platform $U${md%/*}$XU instead"
 
 	# return the local cached copy of the tldrpage, or retrieve and cache from github
-	CACHED=$configdir/$PAGE
-	Recent "$CACHED" || {
-		mkdir -p "${CACHED%/*}"
-		$DL "$CACHED" "$base_url/$PAGE" || Err "Could not download page $I$CACHED$XI from index $U$index_url$XU"
+	cached=$configdir/$md
+	Recent "$cached" || {
+		mkdir -p "${cached%/*}"
+		$dl "$cached" "$base_url/$md" || Err "Could not download page $I$cached$XI from index $U$index_url$XU"
 	}
 }
 
+# Uses: page stdout stderr; Sets: ln line
 Display_tldr(){
-	# read one line at a time, don't strip whitespace ('IFS='), and
-	# process last line even if it doesn't have a newline at the end
-	L=0
-	local newfmt len line
-	while read -r || [[ $REPLY ]]
+	local newfmt len val
+	ln=0 line=''
+	# Read full lines, and process even when no newline at the end
+	while read -r line || [[ $line ]]
 	do
-		((++L))
-		((L==1)) && {
-			[[ ${REPLY:0:1} = '#' ]] && newfmt=0 || newfmt=1
+		((++ln))
+		((ln==1)) && {
+			[[ ${line:0:1} = '#' ]] && newfmt=0 || newfmt=1
 			((newfmt)) && {
-				[[ $REPLY ]] || Unlinted "No title"
-				Out "$TNL$TSP$T$REPLY$XT"
-				len=${#REPLY}
-				read -r; ((++L))
-				[[ $REPLY =~ [^=] ]] && Unlinted "Title underline must be equal signs"
-				((len!=${#REPLY})) && Unlinted "Underline length not equal to title's"
-				read -r; ((++L))
+				[[ $line ]] || Unlinted "No title"
+				Out "$TNL$TSP$T$line$XT"
+				len=${#line}
+				read -r; ((++ln))
+				[[ $line =~ [^=] ]] && Unlinted "Title underline must be equal signs"
+				((len!=${#line})) && Unlinted "Underline length not equal to title's"
+				read -r; ((++ln))
 			}
 		}
-		case "${REPLY:0:1}" in  # first character
+		case "${line:0:1}" in  # first character
 			'#') ((newfmt)) && Unlinted "Bad first character"
-				((${#REPLY} <= 2)) && Unlinted "No title"
-				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				Out "$TNL$TSP$T${REPLY:2}$XT" ;;
-			'>') ((${#REPLY} <= 3)) && Unlinted "No valid desciption"
-				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				[[ ! ${REPLY: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
-				Out "$DNL$DSP$D${REPLY:2}$XD"
+				((${#line} <= 2)) && Unlinted "No title"
+				[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				Out "$TNL$TSP$T${line:2}$XT" ;;
+			'>') ((${#line} <= 3)) && Unlinted "No valid desciption"
+				[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				[[ ! ${line: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
+				Out "$DNL$DSP$D${line:2}$XD"
 				DNL='' ;;
 			'-') ((newfmt)) && Unlinted "Bad first character"
-				((${#REPLY} <= 2)) && Unlinted "No example content"
-				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				Out "$ENL$ESP$E${REPLY:2}$XE" ;;
+				((${#line} <= 2)) && Unlinted "No example content"
+				[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				Out "$ENL$ESP$E${line:2}$XE" ;;
 			' ') ((newfmt)) || Unlinted "Bad first character"
-				((${#REPLY} <= 4)) && Unlinted "No valid code content"
-				[[ ${REPLY:0:4} = '    ' ]] || Unlinted "No four spaces before code"
-				line=${REPLY:4}
+				((${#line} <= 4)) && Unlinted "No valid code content"
+				[[ ${line:0:4} = '    ' ]] || Unlinted "No four spaces before code"
+				val=${line:4}
 				# Value: convert {{value}}
-				line=${line//\{\{/$CX$V}
-				line=${line//\}\}/$XV$C}
-				Out "$CNL$CSP$C$line$XC" ;;
+				val=${val//\{\{/$CX$V}
+				val=${val//\}\}/$XV$C}
+				Out "$CNL$CSP$C$val$XC" ;;
 			'`') ((newfmt)) && Unlinted "Bad first character"
-				((${#REPLY} <= 2)) && Unlinted "No valid code content"
-				[[ ! ${REPLY: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
-				line=${REPLY:1:-1}
+				((${#line} <= 2)) && Unlinted "No valid code content"
+				[[ ! ${line: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
+				val=${line:1:-1}
 				# Value: convert {{value}}
-				line=${line//\{\{/$CX$V}
-				line=${line//\}\}/$XV$C}
-				Out "$CNL$CSP$C$line$XC" ;;
+				val=${val//\{\{/$CX$V}
+				val=${val//\}\}/$XV$C}
+				Out "$CNL$CSP$C$val$XC" ;;
 			'') continue ;;
 			*) ((newfmt)) || Unlinted "Bad first character"
-				[[ -z $REPLY ]] && Unlinted "No example content"
-				Out "$ENL$EPS$E$REPLY$XE" ;;
+				[[ -z $line ]] && Unlinted "No example content"
+				Out "$ENL$EPS$E$line$XE" ;;
 		esac
 	done
-	trap 'less +Gg -RXQFP"%pB\% tldr $I$page$XI - press Q to exit" <<<"$STDOUT$STDERR"' EXIT
+	trap 'less +Gg -RXQFP"%pB\% tldr $I$page$XI - press Q to exit" <<<"$stdout$stderr"' EXIT
 }
 
-List_pages(){  # $1: exit code
-	local platformtext
+# $1: exit code; Uses: platform index
+List_pages(){
+	local platformtext c1 c2 c3
 	[[ $platform ]] && platformtext=" from platform $I$platform$XI"
 	Out "${GRE}Known tldr pages$platformtext:"
 	Out "$(while read -r c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" "$c1" "$c2" "$c3"; done \
-			<<<$(tr '{' '\n' <"$index" |grep "$platform" |cut -d "$Q" -f4))"
+			<<<$(tr '{' '\n' <$index |grep "$platform" |cut -d "$Q" -f4))"
 	exit "$1"
 }
 
-Cache_fill(){  # $1: exit code
-	local tmp=$(mktemp -d)
-	$DL "$tmp/pages.zip" "$zip_url" || {
+# $1: exit code; Uses: dl configdir zip_url
+Cache_fill(){
+	local tmp unzip
+	tmp=$(mktemp -d)
+	$dl "$tmp/pages.zip" "$zip_url" || {
 		rm -- "$tmp"
 		Err "Could not download pages archive from $U$zip_url$XU"
 		exit 6
@@ -305,8 +319,7 @@ Cache_fill(){  # $1: exit code
 }
 
 Config
-markdown=0 err=0
-arg=$1
+markdown=0 err=0 arg=$1
 case "$arg" in
 	-l|--list) [[ $2 ]] && {
 			platform=$2
@@ -352,8 +365,8 @@ esac
 }
 
 Get_tldr "${page// /-}"
-[[ ! -s $CACHED ]] && Err "tldr page for command $I$page$XI not found" && exit 23
+[[ ! -s $cached ]] && Err "tldr page for command $I$page$XI not found" && exit 23
 
-((markdown)) && Out "$(cat "$CACHED")" || Display_tldr <"$CACHED"
+((markdown)) && Out "$(cat "$cached")" || Display_tldr <"$cached"
 # The error trap will output the accumulated stdout and stderr
 exit 0
