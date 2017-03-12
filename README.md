@@ -40,15 +40,18 @@ backgrounds (last one specified will be used) and modes (more can apply):
 * Colors: Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
 * BG: BlackBG, RedBG, GreenBG, YellowBG, BlueBG, MagentaBG, CyanBG, WhiteBG
 * Modes: Bold, Underline, Italic, Inverse
-'Newline' can be added to the style list to add a newline before the element
-and 'Space' to add a space at the start of the line
+
+`Newline` can be added to the style list to add a newline before the element
+and `Space` to add a space at the start of the line
 (style items are separated by space, lower/uppercase mixed allowed)
 * TLDR_TITLE_STYLE (defaults to: Newline Space Bold Yellow)
 * TLDR_DESCRIPTION_STYLE (defaults to: Space Yellow)
 * TLDR_EXAMPLE_STYLE (defaults to: Newline Space Bold Green)
 * TLDR_CODE_STYLE (defaults to: Space Bold Blue)
 * TLDR_VALUE_ISTYLE (defaults to: Space Bold Cyan)
+
 The Value style (above) is an Inline style: doesn't take Newline or Space
+
 Inline styles for help text: default, URL, option, platform, command, header
 * TLDR_DEFAULT_ISTYLE (defaults to: White)
 * TLDR_URL_ISTYLE (defaults to: Yellow)
@@ -57,11 +60,14 @@ Inline styles for help text: default, URL, option, platform, command, header
 * TLDR_PLATFORM_ISTYLE (defaults to: Bold Blue)
 * TLDR_COMMAND_ISTYLE (defaults to: Bold Cyan)
 * TLDR_FILE_ISTYLE (defaults to: Bold Magenta)
+
 Color/BG (Newline and Space also allowed) for error and info messages
 * TLDR_ERROR_COLOR (defaults to: Newline Space Red)
 * TLDR_INFO_COLOR (defaults to: Newline Space Green)
+
 How many days before freshly downloading a potentially stale page
 * TLDR_EXPIRY (defaults to: 60)
+
 Alternative location of pages cache
 * TLDR_CACHE (not set by default)
 
@@ -79,6 +85,7 @@ Or even better, send a pull request!
 ### License
 
 Original client by Ray Lee http://github.com/raylee/tldr (MIT license)
-Re-licensed under GPL v3+
+
+Relicensed under GPL v3+
 
 <img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />
