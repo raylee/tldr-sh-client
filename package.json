@@ -1,6 +1,6 @@
 {
   "name": "tldr-bash-client",
-  "version": "0.2",
+  "version": "0.3",
   "description": "Bash client for tldr: community driven man-by-example",
   "global": "true",
   "install": "make install",
