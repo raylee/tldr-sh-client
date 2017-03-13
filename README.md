@@ -5,7 +5,7 @@
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
-client for the [tldr](https://github.com/rprieto/tldr/) project, providing
+client for the [tldr](https://github.com/tldr-pages/tldr) project, providing
 poignant examples of terminal commands.**
 
 <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
@@ -86,6 +86,6 @@ Or even better, send a pull request!
 
 Original client by Ray Lee http://github.com/raylee/tldr (MIT license)
 
-Relicensed under GPL v3+
+Relicensed under GPLv3+
 
 <img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />
