@@ -1,5 +1,5 @@
 #!/bin/bash
-set +vx +o pipefail
+set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
 version='0.3'
 # tldr-bash-client version 0.3
