@@ -8,7 +8,7 @@
 client for the [tldr](https://github.com/tldr-pages/tldr) project, providing
 poignant examples of terminal commands.**
 
-<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+<img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
 
 This client can render both the old and the new tldr markup format.
 
@@ -25,8 +25,8 @@ If the location is not in $PATH, you need to specify the path to run it.
 Alternately, you can do `sudo bpkg-install pepa65/tldr` if you have
 [bpkg](https://github.com/bpkg/bpkg) installed.
 
-<img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
 <img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
+<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
