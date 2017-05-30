@@ -324,7 +324,7 @@ Display_tldr(){
 				Out "$ENL$EPS$E$line$XE" ;;
 		esac
 	done <"$1"
-	trap 'less +Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
+	trap 'less -Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
 }
 
 # $1: exit code; Uses: platform index
