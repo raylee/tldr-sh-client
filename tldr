@@ -1,8 +1,8 @@
 #!/bin/bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.32'
-# tldr-bash-client version 0.32
+version='0.33'
+# tldr-bash-client version 0.33
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, http://github.com/raylee/tldr
 # - modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
@@ -221,9 +221,9 @@ Config(){
 	[[ -f $index ]] && Recent "$index" || Update_index
 }
 
-# $1: error message; Uses: md line ln
+# $1: error message; Uses: md REPLY ln
 Unlinted(){
-	Err "Page $I$md$XI not properly linted!$N${ERRSP}${ERR}Line $I$ln$XI [$XERR$U$line$XU$ERR]$N$ERRSP$ERR$1"
+	Err "Page $I$md$XI not properly linted!$N${ERRSP}${ERR}Line $I$ln$XI [$XERR$U$REPLY$XU$ERR]$N$ERRSP$ERR$1"
 	exit 5
 }
 
@@ -267,61 +267,63 @@ Get_tldr(){
 	}
 }
 
-# $1: text; Uses: page stdout; Sets: ln line
+# $1: text; Uses: page stdout; Sets: ln REPLY
 Display_tldr(){
 	local newfmt len val
-	ln=0 line=''
+	ln=0 REPLY=''
 	[[ $md ]] || md=$1
 	# Read full lines, and process even when no newline at the end
-	while read -r line || [[ $line ]]
+	while read -r || [[ $REPLY ]]
 	do
 		((++ln))
 		((ln==1)) && {
-			[[ ${line:0:1} = '#' ]] && newfmt=0 || newfmt=1
+			[[ ${REPLY:0:1} = '#' ]] && newfmt=0 || newfmt=1
 			((newfmt)) && {
-				[[ $line ]] || Unlinted "No title"
-				Out "$TNL$TSP$T$line$XT"
-				len=${#line}
-				read -r; ((++ln))
-				[[ $line =~ [^=] ]] && Unlinted "Title underline must be equal signs"
-				((len!=${#line})) && Unlinted "Underline length not equal to title's"
-				read -r; ((++ln))
+				[[ $REPLY ]] || Unlinted "Empty title"
+				Out "$TNL$TSP$T$REPLY$XT"
+				len=${#REPLY}  # title length
+				read -r
+				((++ln))
+				[[ $REPLY =~ [^=] ]] && Unlinted "Title underline must be equal signs"
+				((len!=${#REPLY})) && Unlinted "Underline length not equal to title's"
+				read -r
+				((++ln))
 			}
 		}
-		case "${line:0:1}" in  # first character
+		case "${REPLY:0:1}" in  # first character
 			'#') ((newfmt)) && Unlinted "Bad first character"
-				((${#line} <= 2)) && Unlinted "No title"
-				[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				Out "$TNL$TSP$T${line:2}$XT" ;;
-			'>') ((${#line} <= 3)) && Unlinted "No valid desciption"
-				[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				[[ ! ${line: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
-				Out "$DNL$DSP$D${line:2}$XD"
+				((${#REPLY} <= 2)) && Unlinted "No title"
+				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				Out "$TNL$TSP$T${REPLY:2}$XT" ;;
+			'>') ((${#REPLY} <= 3)) && Unlinted "No valid desciption"
+				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				[[ ! ${REPLY: -1} = '.' ]] && Unlinted "Description doesn't end in full stop"
+				Out "$DNL$DSP$D${REPLY:2}$XD"
 				DNL='' ;;
 			'-') ((newfmt)) && Unlinted "Bad first character"
-				((${#line} <= 2)) && Unlinted "No example content"
-				[[ ! ${line:1:1} = ' ' ]] && Unlinted "2nd character no space"
-				Out "$ENL$ESP$E${line:2}$XE" ;;
+				((${#REPLY} <= 2)) && Unlinted "No example content"
+				[[ ! ${REPLY:1:1} = ' ' ]] && Unlinted "2nd character no space"
+				Out "$ENL$ESP$E${REPLY:2}$XE" ;;
 			' ') ((newfmt)) || Unlinted "Bad first character"
-				((${#line} <= 4)) && Unlinted "No valid code content"
-				[[ ${line:0:4} = '    ' ]] || Unlinted "No four spaces before code"
-				val=${line:4}
+				((${#REPLY} <= 4)) && Unlinted "No valid code content"
+				[[ ${REPLY:0:4} = '    ' ]] || Unlinted "No four spaces before code"
+				val=${REPLY:4}
 				# Value: convert {{value}}
 				val=${val//\{\{/$CX$V}
 				val=${val//\}\}/$XV$C}
 				Out "$CNL$CSP$C$val$XC" ;;
 			'`') ((newfmt)) && Unlinted "Bad first character"
-				((${#line} <= 2)) && Unlinted "No valid code content"
-				[[ ! ${line: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
-				val=${line:1:-1}
+				((${#REPLY} <= 2)) && Unlinted "No valid code content"
+				[[ ! ${REPLY: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
+				val=${REPLY:1:-1}
 				# Value: convert {{value}}
 				val=${val//\{\{/$CX$V}
 				val=${val//\}\}/$XV$C}
 				Out "$CNL$CSP$C$val$XC" ;;
 			'') continue ;;
 			*) ((newfmt)) || Unlinted "Bad first character"
-				[[ -z $line ]] && Unlinted "No example content"
-				Out "$ENL$EPS$E$line$XE" ;;
+				[[ -z $REPLY ]] && Unlinted "No example content"
+				Out "$ENL$ESP$E$REPLY$XE" ;;
 		esac
 	done <"$1"
 	trap 'less -Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
