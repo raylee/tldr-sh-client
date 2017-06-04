@@ -18,7 +18,7 @@ config() {
 
     platform=$(get_platform)
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
-    index_url="http://tldr-pages.github.io/assets/index.json"
+    index_url="https://tldr.sh/assets/index.json"
     index="$configdir/index.json"
     cache_days=14
     force_update=''
