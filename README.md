@@ -1,7 +1,6 @@
 # tldr-bash-client
 
 * version 0.33
-* https://github.com/pepa65/tldr-bash-client
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
@@ -75,6 +74,8 @@ Alternative location of pages cache
 
 # tldr-lint
 
+* version 0.10
+
 ### Linter for new syntax tldr source files
 
 ```
@@ -100,8 +101,8 @@ Or even better, send a pull request!
 
 ### License
 
-Original client by Ray Lee http://github.com/raylee/tldr (MIT license)
+Original tldr client in bash by Ray Lee http://github.com/raylee/tldr (MIT license)
 
-Relicensed under GPLv3+
+The tldr-bash-client is relicensed under GPLv3+ and tldr-lint is GPLv3+ as well.
 
 <img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />
