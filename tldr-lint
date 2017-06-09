@@ -1,8 +1,8 @@
 #!/bin/bash
 set +vx
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.33'
-# tldr-lint version 0.33
+version='0.10'
+# tldr-lint version 0.10
 # Linter for new syntax tldr source files
 # Old syntax files $f can be changed into new syntax files by:
 #  sed -i -e "1s/^# //" -e 's/^- //' -e 's/^`\(.*\)`$/    \1/' "$f"
@@ -44,7 +44,7 @@ Ok(){  # $1:message $2:OK(0),Not-OK(>0)
 
 Check(){  # $1:filename
 	# Use: quiet, E, O, W, X, U, XU, B, XB; Modify: line, flags
-	local n f lines len_command check description examples
+	local n f lines name len_command check description examples
 	((quiet)) || echo "$B File $O$1$X$XB"
 	IFS= read -rd '' f <"$1"
 	flags=0
@@ -66,6 +66,9 @@ Check(){  # $1:filename
 		check=$flags
 		grep -qn '^[a-zA-Z0-9_]\([-a-zA-Z0-9_ .]*[a-zA-Z0-9_]\)*$' <<<"$line" ||
 			Flag "Command name not well-formed" $n
+		name=${1##*/} name=${name%.*}
+		[[ ${line// /-} = $name ]] ||
+			Flag "Command name $U$line$XU different from filename $U$name$XU"
 		Ok "Command name" $((flags-check))
 		len_command=${#line}
 		check=$flags
