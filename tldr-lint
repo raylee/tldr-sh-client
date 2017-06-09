@@ -64,7 +64,7 @@ Check(){  # $1:filename
 		# header
 		read -r && line=$REPLY && ((++n)) || break
 		check=$flags
-		grep -qn '^[a-zA-Z0-9_]\([-a-zA-Z0-9_ .]*[a-zA-Z0-9_]\)*$' <<<"$line" ||
+		grep -qn '^[a-zA-Z0-9_]\([a-zA-Z0-9_ .-]*[a-zA-Z0-9_]\)*$' <<<"$line" ||
 			Flag "Command name not well-formed" $n
 		command=${line// /-}
 		name=${1##*/} name=${name%.*}
