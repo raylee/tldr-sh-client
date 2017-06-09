@@ -1,8 +1,8 @@
 #!/bin/bash
 set +vx
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.10'
-# tldr-lint version 0.10
+version='0.11'
+# tldr-lint version 0.11
 # Linter for new syntax tldr source files
 # Old syntax files $f can be changed into new syntax files by:
 #  sed -i -e "1s/^# //" -e 's/^- //' -e 's/^`\(.*\)`$/    \1/' "$f"
@@ -28,7 +28,7 @@ Help(){  # $1: optional message
 Flag(){  # $1:message; $2:linenumber (0:not shown, missing:exit)
 	# Use: v, line, W, X, U, XU; Modify: flags
 	((++flags))
-		[[ $2 ]] && (($2)) && echo -e "$W FLAG:$X $1\n$W$2$X:$U$line$XU" ||
+		[[ $2 ]] && (($2)) && echo -e "$W FLAG:$X $1:\n$W$2$X:$U$line$XU" ||
 			echo -e "$W FLAG:$X $1"
 }
 
@@ -57,7 +57,7 @@ Check(){  # $1:filename
 	[[ $lines ]] && Flag "Tabs $E^T$X not allowed:\n$lines"
 	lines="$(grep -n ' $' <<<"$f" |\
 			sed -e "s/^\([^:]*\):/$W\1$X:$U/g" -e "s/$/$XU/g")"
-	[[ $lines ]] && Flag "Trailing spaces not allowed:\n$lines"
+	[[ $lines ]] && Flag "Trailing spaces $U$E $X$XU not allowed:\n$lines"
 	n=0
 	while true
 	do
@@ -66,17 +66,18 @@ Check(){  # $1:filename
 		check=$flags
 		grep -qn '^[a-zA-Z0-9_]\([-a-zA-Z0-9_ .]*[a-zA-Z0-9_]\)*$' <<<"$line" ||
 			Flag "Command name not well-formed" $n
+		command=${line// /-}
 		name=${1##*/} name=${name%.*}
-		[[ ${line// /-} = $name ]] ||
-			Flag "Command name $U$line$XU different from filename $U$name$XU"
+		[[ $command = $name ]] ||
+			Flag "Command name different from filename $U$name$XU" $n
 		Ok "Command name" $((flags-check))
 		len_command=${#line}
 		check=$flags
 		read -r && line=$REPLY && ((++n)) || break
 		[[ $line =~ ^=+$ ]] ||
-			Flag "Command must be underlined by equal signs: $E=$X" $n
+			Flag "Only equal signs $E=$X must underline the command" $n
 		((${#line}!=len_command)) &&
-			Flag "Underline must have the same length as command" $n
+			Flag "Command $U$command$XU and underline must have the same length" $n
 		Ok "Underline" $((flags-check))
 		read -r && line=$REPLY && ((++n)) || break
 		[[ $line ]] && Flag "Empty line required after underline" $n
@@ -88,14 +89,15 @@ Check(){  # $1:filename
 		do
 			((++description))
 			[[ ${line:2:1} =~ [a-z] ]] &&
-				Flag "No lowercase allowed for the start of a description" $n
+				Flag "Not allowed to start a description with lowercase$U a-z$XU" $n
 			[[ ${line:2:1} = ' ' ]] &&
-				Flag "Only 1 space after the greater-than symbol $E>$X allowed" $n
+				Flag "Only 1 space $U$E $X$XU after the greater-than symbol $E>$X allowed" $n
 			[[ ${line: -1} = '.' ]] ||
-				Flag "Command description must end with a dot $E.$X" $n
+				Flag "Must have a dot $E.$X at the end of a command description" $n
 			read -r && line=$REPLY && ((++n)) || break 2
 		done
-		((description)) || Flag "Command description '$U$E> $X---$E.$X$XU' missing"
+		((description)) ||
+			Flag "A command description '$U$E> $X---$E.$X$XU' is missing"
 		Ok "$description Command description lines" $((flags-check+!description))
 		# examples
 		check=$flags
@@ -105,21 +107,21 @@ Check(){  # $1:filename
 			[[ $line ]] && Flag "Empty line required before example description" $n ||
 				read -r && line=$REPLY && ((++n)) || break 2
 			[[ ${line:0:1} =~ [a-z] ]] &&
-				Flag "No lowercase allowed for the start of an example description" $n
+				Flag "Not allowed to start an example description with lowercase$U a-z$XU" $n
 			[[ ${line: -1} = ':' ]] ||
-				Flag "Example description must end in colon $E:$X" $n
+				Flag "A colon $E:$X must end each example description" $n
 			((++examples))
 			read -r && line=$REPLY && ((++n)) || break 2
 			[[ $line ]] && Flag "Empty line required after example description" $n ||
 				read -r && line=$REPLY && ((++n)) || break 2
 			[[ ${line:0:4} = '    ' ]] ||
-				Flag "Example command must be preceded by 4 spaces $E$U    $XU$X" $n
+				Flag "Four spaces $E$U    $XU$X must precede each example command" $n
 			[[ ${line:4:1} = ' ' ]] &&
-				Flag "No more that 4 spaces $E$U    $XU$X before example command allowed" $n
+				Flag "No more that 4 spaces $E$U    $XU$X before example commands allowed" $n
 			read -r && line=$REPLY && ((++n)) || break 2
 		done
 	done <<<"$f"
-	[[ $line ]] && Flag "Newline required at the end" $n
+	[[ $line ]] && Flag "Newline required at the end of a page" $n
 	Ok "$examples Examples" $((flags-check+!examples))
 	Ok "$B$1$XB" $flags
 }

@@ -74,7 +74,7 @@ Alternative location of pages cache
 
 # tldr-lint
 
-* version 0.10
+* version 0.11
 
 ### Linter for new syntax tldr source files
 
