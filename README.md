@@ -73,6 +73,22 @@ Alternative location of pages cache
 
 <img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
 
+# tldr-lint
+
+### Linter for new syntax tldr source files
+
+```
+Usage: tldr-lint [-h|--help] [-q|--quiet] [<dir>] [<file>]
+          - All *.md files under <dir> and subdirectories are checked
+          - <file> is checked regardless of extension
+          No output means OK, unless -v or --verbose is given
+          -q, --quiet:  No output means check is OK
+          -h, --help:   This help text
+```
+
+### Prerequisites
+coreutils, sed, grep, find
+
 ## Contributing
 
 Please file an issue for a question, a bug or a feature request.
