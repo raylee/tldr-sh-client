@@ -14,11 +14,12 @@ Help(){  # $1: optional message
 	# Use: self, version
 	cat <<-EOC
 		$B$O $self$X v$version
-		 Usage: $self [-h|--help] [-q|--quiet] [<dir>] [<file>]
+		 Usage: $self [-h|--help] [-V|--version] [-q|--quiet] [<dir>] [<file>]
 		        - All *.md files under <dir> and subdirectories are checked
 		        - <file> is checked regardless of extension
-		        -q, --quiet:  No output means check is OK
-		        -h, --help:   This help text
+		        -q, --quiet:    No output means check is OK
+		        -V, --version:  Output version
+		        -h, --help:     This help text
 	EOC
 	[[ $1 ]] && echo "$E ERROR:$X $1"
 	exit 1
@@ -128,6 +129,7 @@ self=${0##*/} file='' dir='' line='' flags=0 quiet=0
 while (($#))
 do
 	case $1 in
+	-V|--version) echo "$version"; exit 0 ;;
 	-h|--help) Help ;;
 	-q|--quiet) quiet=1; shift ;;
 	*) if [[ -f $1 ]]

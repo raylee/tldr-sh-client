@@ -78,12 +78,12 @@ Alternative location of pages cache
 ### Linter for new syntax tldr source files
 
 ```
-Usage: tldr-lint [-h|--help] [-q|--quiet] [<dir>] [<file>]
+Usage: tldr-lint [-h|--help] [-V|--version] [-q|--quiet] [<dir>] [<file>]
           - All *.md files under <dir> and subdirectories are checked
           - <file> is checked regardless of extension
-          No output means OK, unless -v or --verbose is given
-          -q, --quiet:  No output means check is OK
-          -h, --help:   This help text
+          -q, --quiet:    No output means check is OK
+          -V, --version:  Display version
+          -h, --help:     Display this help text
 ```
 
 ### Prerequisites
