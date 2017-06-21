@@ -1,14 +1,13 @@
 # tldr-bash-client
 
-* version 0.3
-* https://github.com/pepa65/tldr-bash-client
+* version 0.33
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
 client for the [tldr](https://github.com/tldr-pages/tldr) project, providing
 poignant examples of terminal commands.**
 
-<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+<img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
 
 This client can render both the old and the new tldr markup format.
 
@@ -25,8 +24,8 @@ If the location is not in $PATH, you need to specify the path to run it.
 Alternately, you can do `sudo bpkg-install pepa65/tldr` if you have
 [bpkg](https://github.com/bpkg/bpkg) installed.
 
-<img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
-[](<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />)
+<img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
+<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
 ### Prerequisites
 coreutils, less, grep, unzip, curl / wget
@@ -73,6 +72,24 @@ Alternative location of pages cache
 
 <img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
 
+# tldr-lint
+
+* version 0.11
+
+### Linter for new syntax tldr source files
+
+```
+Usage: tldr-lint [-h|--help] [-V|--version] [-q|--quiet] [<dir>] [<file>]
+          - All *.md files under <dir> and subdirectories are checked
+          - <file> is checked regardless of extension
+          -q, --quiet:    No output means check is OK
+          -V, --version:  Display version
+          -h, --help:     Display this help text
+```
+
+### Prerequisites
+coreutils, sed, grep, find
+
 ## Contributing
 
 Please file an issue for a question, a bug or a feature request.
@@ -84,8 +101,8 @@ Or even better, send a pull request!
 
 ### License
 
-Original client by Ray Lee http://github.com/raylee/tldr (MIT license)
+Original tldr client in bash by Ray Lee http://github.com/raylee/tldr (MIT license)
 
-Relicensed under GPLv3+
+The tldr-bash-client is relicensed under GPLv3+ and tldr-lint is GPLv3+ as well.
 
 <img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />
