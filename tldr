@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
 version='0.33'
