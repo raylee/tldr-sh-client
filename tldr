@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.33'
-# tldr-bash-client version 0.33
+version='0.34'
+# tldr-bash-client version 0.34
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, http://github.com/raylee/tldr
 # - modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
@@ -43,26 +43,26 @@ version='0.33'
 # $1: [optional] exit code; Uses: version cachedir
 Usage(){
 	Out "$(cat <<-EOF
-		$HHE $version
+		 $HHE$version
 
-		$HDE USAGE: $HHE$(basename "$0")$XHHE [${HOP}option$XHOP] [${HPL}platform$XHPL/]${HCO}command$XHCO
+		 $HDEUSAGE: $HHE$(basename "$0")$XHHE [${HOP}option$XHOP] [${HPL}platform$XHPL/]${HCO}command$XHCO
 
-		$HDE [${HPL}platform$XHPL/]${HCO}command$XHCO:          Show page for$HCO command$XHCO (from$HPL platform$XHPL)
+		 $HDE[${HPL}platform$XHPL/]${HCO}command$XHCO:          Show page for ${HCO}command$XHCO (from ${HPL}platform$XHPL)
 
-		$HPL platform$XHPL is optionally one of:$HPL common$XHPL,$HPL linux$XHPL,$HPL osx$XHPL,$HPL sunos$XHPL
+		 ${HPL}platform$XHPL (optional) one of: ${HPL}common$XHPL, ${HPL}linux$XHPL, ${HPL}osx$XHPL, ${HPL}sunos$XHPL, ${HPL}current$XHPL (includes common)
 
-		$HOP option$XHOP is optionally one of:
-		  $HOP-l$XHOP,$HOP --list$XHOP [${HPL}platform$XHPL]:      Show all available pages (from$HPL platform$XHPL)
-		  $HOP-r$XHOP,$HOP --render$XHOP ${HFI}file$XHFI:          Render a local$HFI file$XHFI as tldr markdown
-		  $HOP-m$XHOP,$HOP --markdown$XHOP ${HCO}command$XHCO:     Show the markdown source for$HCO command$XHCO
-		  $HOP-c$XHOP,$HOP --cache$XHOP:                Cache all pages by downloading archive from repo
-		  $HOP-u$XHOP,$HOP --update$XHOP:               Re-download index file from repo
-		  $HOP-v$XHOP,$HOP --version$XHOP:              Version number and repo location
-		  $HDE[$HOP-h$XHOP,$HOP -?$XHOP,$HOP --help$XHOP]:           This help overview
+		 ${HOP}option$XHOP is optionally one of:
+		  $HOP-l$XHOP, $HOP--list$XHOP [${HPL}platform$XHPL]:      List all pages (from ${HPL}platform$XHPL)
+		  $HOP-a$XHOP, $HOP--list-all$XHOP:             List all pages from current platform + common
+		  $HOP-r$XHOP, $HOP--render$XHOP ${HFI}file$XHFI:          Render a local ${HFI}file$XHFI as tldr markdown
+		  $HOP-m$XHOP, $HOP--markdown$XHOP ${HCO}command$XHCO:     Show the markdown source for ${HCO}command$XHCO
+		  $HOP-u$XHOP, $HOP--update$XHOP:               Update the pages cache by downloading repo archive
+		  $HOP-v$XHOP, $HOP--version$XHOP:              Version number and local repo location
+		  $HDE[$HOP-h$XHOP, $HOP-?$XHOP, $HOP--help$XHOP]:           This help overview
 
-		$HDE Element styling:$XHDE$T Title$XT$D Description$XD$E Example$XD$C Code$XC$V Value$XV
-		$HDE All pages and the index are cached locally under $HUR$cachedir$XHUR.
-		$HDE By default, the cached copies will be freshly downloaded after $HUR${TLDR_EXPIRY// /}$XHUR days.
+		 ${HDE}Element styling:$XHDE ${T}Title$XT ${D}Description$XD ${E}Example$XE ${C}Code$XC ${V}Value$XV
+		 ${HDE}All pages and the index are cached locally under $HUR$cachedir$XHUR.
+		 ${HDE}By default, the cached copies will be freshly downloaded after $HUR${TLDR_EXPIRY// /}$XHUR days.
 		EOF
 	)"
 	exit "${1:-0}"
@@ -173,14 +173,6 @@ Init_term(){
 # $1: page
 Recent(){ find "$1" -mtime -"${TLDR_EXPIRY// /}" >/dev/null 2>&1;}
 
-# Download index.json; Uses: index index_url base_url zip_url dl
-Update_index(){
-	$dl "$index" "$index_url" && Inf "Index file $I$index$XI freshly downloaded" || {
-		Err "Could not download index from $I$index_url$XI with $dl"
-		exit 2
-	}
-}
-
 # Initialize globals, check the environment; Uses: config cachedir version
 # Sets: stdout os version dl
 Config(){
@@ -193,19 +185,18 @@ Config(){
 	Init_term
 	trap 'less -~RXQFP"Browse up/down, press Q to exit " <<<"$stdout"' EXIT
 
-	version="tldr-bash-client version $version $XB$URL http://github.com/pepa65/tldr-bash-client$XURL"
+	version="tldr-bash-client version $version$XB ${URL}http://github.com/pepa65/tldr-bash-client$XURL"
 
 	# Select download method
 	dl="$(type -p curl) -sLfo" || {
 		dl="$(type -p wget) --max-redirect=20 -qNO" || {
-			Err "tldr requires$I curl$XI or$I wget $XI installed in your path"
+			Err "tldr requires ${I}curl$XI or ${I}wget$XI installed in your path"
 			exit 3
 		}
 	}
 
 	base_url='https://raw.githubusercontent.com/tldr-pages/tldr/master/pages'
 	zip_url='http://tldr-pages.github.io/assets/tldr.zip'
-	index_url='http://tldr-pages.github.io/assets/index.json'
 
 	read cachedir <<<$TLDR_CACHE
 	[[ $cachedir ]] || {
@@ -218,7 +209,7 @@ Config(){
 	}
 	index=$cachedir/index.json
 	# update if the file doesn't exists, or if it's older than $TLDR_EXPIRY
-	[[ -f $index ]] && Recent "$index" || Update_index
+	[[ -f $index ]] && Recent "$index" || Cache_fill
 }
 
 # $1: error message; Uses: md REPLY ln
@@ -227,16 +218,16 @@ Unlinted(){
 	exit 5
 }
 
-# $1: page; Uses: index index_url cachedir base_url platform os dl cached md
+# $1: page; Uses: index cachedir base_url platform os dl cached md
 # Sets: cached md
 Get_tldr(){
 	local desc err notfound
 	# convert the local platform name to tldr's version
 	# extract the platform key from index.json, return preferred subpath to page
-	desc=$(tr '{' '\n' <$index |grep "\"name\":\"$1\"")
+	desc=$(tr '{' '\n' <"$index" |grep "\"name\":\"$1\"")
 	# results in, eg, "name":"netstat","platform":["linux","osx"]},
 
-	[[ $desc ]] || return  # just not found
+	[[ $desc ]] || return  # nothing found
 
 	error=0
 	if [[ $platform ]]
@@ -249,7 +240,7 @@ Get_tldr(){
 		}
 	fi
 	# if no page found yet, try the system platform
-	[[ $md ]] || [[ $platform = "$os" ]] || {
+	[[ $md ]] || [[ $platform = $os ]] || {
 			[[ $desc =~ \"$os\" ]] && md=$os/$1.md
 	} || {
 		notfound+=" or $I$os$XI"
@@ -263,7 +254,7 @@ Get_tldr(){
 	cached=$cachedir/$md
 	Recent "$cached" || {
 		mkdir -p "${cached%/*}"
-		$dl "$cached" "$base_url/$md" || Err "Could not download page $I$cached$XI from index $U$index_url$XU with $dl"
+		$dl "$cached" "$base_url/$md" || Err "Could not download page $I$cached$XI with $dl"
 	}
 }
 
@@ -332,10 +323,13 @@ Display_tldr(){
 # $1: exit code; Uses: platform index
 List_pages(){
 	local platformtext c1 c2 c3
-	[[ $platform ]] && platformtext=" from platform $I$platform$XI"
-	Inf "Known tldr pages$platformtext:"
+	[[ $platform ]] && platformtext="platform $I$platform$XI" ||
+		platform=^ platformtext="${I}all$XI platforms"
+	[[ $platform = current ]] && platform="-e $os -e common" &&
+		platformtext="$I$os$XI platform and ${I}common$XI"
+	Inf "Known tldr pages from $platformtext:"
 	Out "$(while read -r c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" $c1 $c2 $c3; done \
-			<<<$(tr '{' '\n' <$index |grep "$platform" |cut -d "$Q" -f4))"
+			<<<$(tr '{' '\n' <"$index" |grep $platform |cut -d "$Q" -f4))"
 	exit "$1"
 }
 
@@ -379,13 +373,13 @@ Main(){
 			[[ $3 ]] && Err "$nomore" && err=10
 		}
 		List_pages "$err" ;;
-	-c|--cache) [[ $2 ]] && Err "$nomore" && err=11
+	-a|--list-all) [[ $2 ]] && Err "$nomore" && err=11
+		platform=current
+		List_pages $err ;;
+	-u|--update) [[ $2 ]] && Err "$nomore" && err=12
 		Cache_fill "$err" ;;
-	-v|--version) [[ $2 ]] && Err "$nomore" && err=12
+	-v|--version) [[ $2 ]] && Err "$nomore" && err=13
 		Inf "$version"
-		exit "$err" ;;
-	-u|--update) [[ $2 ]] && Err "$nomore" && err=13
-		Update_index
 		exit "$err" ;;
 	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 14
 		[[ $3 ]] && Err "$nomore" && err=15
@@ -393,7 +387,7 @@ Main(){
 			Display_tldr "$2" && exit "$err"
 			Err "A file error occured"
 			exit 16
-		} || Err "No file:$I $2$XI" && exit 17 ;;
+		} || Err "No file: ${I}$2$XI" && exit 17 ;;
 	-m|--markdown) shift
 		page=$*
 		[[ -z $page ]] && Err "Specify a page to display" && Usage 18
@@ -406,7 +400,7 @@ Main(){
 	esac
 
 	[[ -z $page ]] && Err "No command specified" && Usage 21
-	[[ $page =~ ' -' || ${page:0:1} = '-' ]] && Err "Only one option allowed" && Usage 22
+	[[ ${page:0:1} = '-' || $page = *' '-* ]] && Err "Only one option allowed" && Usage 22
 	[[ $page = */* ]] && platform=${page%/*} && page=${page##*/}
 	[[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
 		Err "Unknown platform $I$platform$XI"
@@ -415,7 +409,7 @@ Main(){
 
 	Get_tldr "${page// /-}"
 	[[ ! -s $cached ]] && Err "tldr page for command $I$page$XI not found" \
-			&& Inf "Contribute new pages at:$XB$URL https://github.com/tldr-pages/tldr$XURL" && exit 24
+			&& Inf "Contribute new pages at:$XB ${URL}https://github.com/tldr-pages/tldr$XURL" && exit 24
 	((markdown)) && Out "$(cat "$cached")" || Display_tldr "$cached"
 }
 

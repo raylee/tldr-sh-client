@@ -1,6 +1,6 @@
 # tldr-bash-client
 
-* version 0.33
+* version 0.34
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
@@ -21,6 +21,7 @@ sudo chmod +x $location
 ```
 
 If the location is not in $PATH, you need to specify the path to run it.
+
 Alternately, you can do `sudo bpkg-install pepa65/tldr` if you have
 [bpkg](https://github.com/bpkg/bpkg) installed.
 
