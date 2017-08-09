@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.34'
-# tldr-bash-client version 0.34
+version='0.35'
+# tldr-bash-client version 0.35
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, http://github.com/raylee/tldr
 # - modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
-# Requiring: coreutils, less, grep, unzip, curl/wget
+# - binary download: http://loof.bid/tldr
+# Requiring: coreutils, grep, unzip, curl/wget, less (optional)
 
 # The 5 elements in TLDR markup that can be styled with these colors and
 # backgrounds (last one specified will be used) and modes (more can apply):
@@ -39,6 +40,11 @@ version='0.34'
 
 # Alternative location of pages cache
 : "${TLDR_CACHE:= }"
+
+# Usage of 'less' or 'cat' for output (set to '0' for cat)
+: "${TLDR_LESS:= }"
+
+## Function definitions
 
 # $1: [optional] exit code; Uses: version cachedir
 Usage(){
@@ -176,6 +182,8 @@ Recent(){ find "$1" -mtime -"${TLDR_EXPIRY// /}" >/dev/null 2>&1;}
 # Initialize globals, check the environment; Uses: config cachedir version
 # Sets: stdout os version dl
 Config(){
+	type -p less 2>/dev/null || TLDR_LESS=0
+
 	os=common stdout='' Q='"' N=$'\n'
 	case "$(uname -s)" in
 		Darwin) os='osx' ;;
@@ -183,7 +191,9 @@ Config(){
 		SunOS) os='sunos' ;;
 	esac
 	Init_term
-	trap 'less -~RXQFP"Browse up/down, press Q to exit " <<<"$stdout"' EXIT
+	[[ $TLDR_LESS = 0 ]] && 
+		trap 'cat <<<"$stdout"' EXIT ||
+		trap 'less -~RXQFP"Browse up/down, press Q to exit " <<<"$stdout"' EXIT
 
 	version="tldr-bash-client version $version$XB ${URL}http://github.com/pepa65/tldr-bash-client$XURL"
 
@@ -317,7 +327,9 @@ Display_tldr(){
 				Out "$ENL$ESP$E$REPLY$XE" ;;
 		esac
 	done <"$1"
-	trap 'less -Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
+	[[ $TLDR_LESS = 0 ]] && 
+		trap 'cat <<<"$stdout"' EXIT ||
+		trap 'less -Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
 }
 
 # $1: exit code; Uses: platform index
@@ -366,7 +378,7 @@ Main(){
 	case "$1" in
 	-l|--list) [[ $2 ]] && {
 			platform=$2
-			[[ ,common,linux,osx,sunos, = *,$platform,* ]] || {
+			[[ ,common,linux,osx,sunos,current, = *,$platform,* ]] || {
 				Err "Unknown platform $I$platform$XI"
 				Usage 9
 			}

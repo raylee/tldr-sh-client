@@ -1,6 +1,6 @@
 # tldr-bash-client
 
-* version 0.34
+* version 0.35
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
@@ -16,7 +16,7 @@ Download the tldr bash script to the install location:
 
 ```bash
 location=/usr/local/bin/tldr  # elevated privileges needed for some locations
-sudo wget -qO $location https://raw.githubusercontent.com/pepa65/tldr-bash-client/master/tldr
+sudo wget -qO $location https://loof.bid/tldr
 sudo chmod +x $location
 ```
 
@@ -29,7 +29,7 @@ Alternately, you can do `sudo bpkg-install pepa65/tldr` if you have
 <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
 ### Prerequisites
-coreutils, less, grep, unzip, curl / wget
+coreutils, grep, unzip, curl / wget, less (optional)
 
 <img alt="tldr usage screenshot" src="tldr-usage.jpg" title="tldr usage" width="600" />
 
@@ -70,6 +70,9 @@ How many days before freshly downloading a potentially stale page
 
 Alternative location of pages cache
 * TLDR_CACHE (not set by default)
+
+Instead of `less`, use `cat` for output (automatic if less not available)
+* TLDR_LESS (not set by default; if set to *0* `cat` will be used)
 
 <img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
 
