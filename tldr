@@ -182,7 +182,7 @@ Recent(){ find "$1" -mtime -"${TLDR_EXPIRY// /}" >/dev/null 2>&1;}
 # Initialize globals, check the environment; Uses: config cachedir version
 # Sets: stdout os version dl
 Config(){
-	type -p less 2>/dev/null || TLDR_LESS=0
+	type -p less >/dev/null || TLDR_LESS=0
 
 	os=common stdout='' Q='"' N=$'\n'
 	case "$(uname -s)" in
@@ -219,7 +219,7 @@ Config(){
 	}
 	index=$cachedir/index.json
 	# update if the file doesn't exists, or if it's older than $TLDR_EXPIRY
-	[[ -f $index ]] && Recent "$index" || Cache_fill
+	[[ -f $index ]] && Recent "$index" || Cache_fill 0
 }
 
 # $1: error message; Uses: md REPLY ln
