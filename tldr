@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.35'
-# tldr-bash-client version 0.35
+version='0.36'
+# tldr-bash-client version 0.36
 # Bash client for tldr: community driven man-by-example
-# - forked from Ray Lee, http://github.com/raylee/tldr
-# - modified and expanded by pepa65: http://github.com/pepa65/tldr-bash-client
+# - forked from Ray Lee, https://github.com/raylee/tldr
+# - modified and expanded by pepa65: https://github.com/pepa65/tldr-bash-client
 # - binary download: http://loof.bid/tldr
 # Requiring: coreutils, grep, unzip, curl/wget, less (optional)
 
@@ -205,8 +205,8 @@ Config(){
 		}
 	}
 
-	base_url='https://raw.githubusercontent.com/tldr-pages/tldr/master/pages'
-	zip_url='http://tldr-pages.github.io/assets/tldr.zip'
+	pages_url='https://raw.githubusercontent.com/tldr-pages/tldr/master/pages'
+	zip_url='http://tldr.sh/assets/tldr.zip'
 
 	read cachedir <<<$TLDR_CACHE
 	[[ $cachedir ]] || {
@@ -228,7 +228,7 @@ Unlinted(){
 	exit 5
 }
 
-# $1: page; Uses: index cachedir base_url platform os dl cached md
+# $1: page; Uses: index cachedir pages_url platform os dl cached md
 # Sets: cached md
 Get_tldr(){
 	local desc err notfound
@@ -264,7 +264,7 @@ Get_tldr(){
 	cached=$cachedir/$md
 	Recent "$cached" || {
 		mkdir -p "${cached%/*}"
-		$dl "$cached" "$base_url/$md" || Err "Could not download page $I$cached$XI with $dl"
+		$dl "$cached" "$pages_url/$md" || Err "Could not download page $I$cached$XI with $dl"
 	}
 }
 

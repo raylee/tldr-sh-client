@@ -1,10 +1,10 @@
 # tldr-bash-client
 
-* version 0.35
+* version 0.36
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
-client for the [tldr](https://github.com/tldr-pages/tldr) project, providing
+client for the [tldr](https://tldr.sh) project, providing
 poignant examples of terminal commands.**
 
 <img alt="tldr page gif" src="tldr-page.gif" title="tldr page" />
