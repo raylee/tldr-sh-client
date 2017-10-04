@@ -316,7 +316,7 @@ Display_tldr(){
 			'`') ((newfmt)) && Unlinted "Bad first character"
 				((${#REPLY} <= 2)) && Unlinted "No valid code content"
 				[[ ! ${REPLY: -1} = '`' ]] && Unlinted "Code doesn't end in backtick"
-				val=${REPLY:1:${#REPLY}-1}
+				val=${REPLY:1:${#REPLY}-2}
 				# Value: convert {{value}}
 				val=${val//\{\{/$CX$V}
 				val=${val//\}\}/$XV$C}
