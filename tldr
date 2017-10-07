@@ -2,17 +2,16 @@
 # tldr client by Ray Lee, http://github.com/raylee/tldr
 # a Sunday afternoon's project, I'm sure there's room for improvement. PRs welcome!
 
-set -uf -o pipefail
+set -u -o pipefail
 
 # initialize globals, sanity check the environment, etc.
 config() {
     init_term_cmds
 
-    if [ -z $(which curl) ]; then
+    if [ -z "$(which curl)" ]; then
         echo "${red}tldr requires \`curl\` installed in your path$reset"
         exit 1
     fi
-
     configdir=~/.tldr
     [ -d ~/.config ] && configdir=~/.config/tldr
 
@@ -24,6 +23,11 @@ config() {
     force_update=''
 
     #check if config folder exists, otherwise create it
+    if [ ! -d "$configdir" ]; then
+        mkdir -p "$configdir"
+        cache_tldr
+    fi
+
     [ -d "$configdir" ] || mkdir -p "$configdir"
 
     [ ! -f $index ] && update_index
@@ -140,7 +144,7 @@ display_tldr() {
 
 # convert the local platorm name to tldr's version
 get_platform() {
-    case `uname -s` in
+    case $(uname -s) in
         Darwin) echo "osx"    ;;
         Linux)  echo "linux"  ;;
         SunOS)  echo "sunos"  ;;
@@ -168,12 +172,23 @@ path_for_cmd() {
     fi
 }
 
+# cache a local copy of the tldrpage
+cache_tldr() {
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master > $configdir/tldr-pages.tar.gz
+    tar xzf "$configdir"/tldr-pages.tar.gz -C "$configdir"
+    mv -f "$configdir"/tldr-pages-tldr-*/pages/* "$configdir"
+
+    # clean up temporary files
+    rm -r "$configdir"/tldr-pages*
+    update_index
+}
+
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
-    local p="$(path_for_cmd $1)"
+    local p="$(path_for_cmd "$1")"
     cached="$configdir/$p"
     recent "$cached" || {
-        mkdir -p $(dirname $cached)
+        mkdir -p "$(dirname "$cached")"
         curl -sf -o "$cached" "$base_url/$p"
     }
     # if the curl failed for some reason, keep cat from whinging
@@ -184,7 +199,7 @@ get_tldr() {
 config
 
 usage() {
-    cmd=$(basename $0)
+    cmd=$(basename "$0")
     cat <<EOF
 USAGE: $cmd [options] <command>
 
@@ -192,6 +207,7 @@ USAGE: $cmd [options] <command>
     -l, --list:      show all available pages
     -p, --platform:  show page from specific platform rather than autodetecting
     -u, --update:    update, force retrieving latest copies of locally cached files
+    -c, --cache:     cache a local copy of all tldr commands
     -h, -?, --help:  this help overview
 
 <command>
@@ -223,6 +239,10 @@ do
             shift
             platform=$1
             ;;
+        -c|--cache)
+            cache_tldr
+            exit 0
+            ;;
         -*)
             usage
             ;;
@@ -233,9 +253,9 @@ do
     shift
 done
 
-[ -z ${page:-} ] && usage
+[ -z "${page:-}" ] && usage
 
-tldr="$(get_tldr $page)"
+tldr="$(get_tldr "$page")"
 
 if [ -z "$tldr" ]; then
     echo "tldr page for command $page not found"
