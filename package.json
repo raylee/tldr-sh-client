@@ -1,0 +1,24 @@
+{
+	"name": "tldr-bash-client",
+	"version": "0.33",
+	"description": "Bash client for tldr: community driven man-by-example",
+	"preferGlobal": true,
+	"global": "true",
+	"install": "install -c tldr ${PREFIX:-/usr/local}/bin",
+	"uninstall": "rm -f -- ${PREFIX:-/usr/local}/bin/tldr",
+	"bin": {
+		"tldr": "tldr"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pepa65/tldr-bash-client"
+	},
+	"keywords": [ "color", "github", "docs", "client", "markdown", "bash", "man" ],
+	"author": "pepa65 <solusos@passchier.net>",
+	"license": "GPL-3.0+",
+	"bugs": {
+		"url": "https://github.com/pepa65/tldr-bash-client",
+		"email" : "solusos@passchier.net"
+	},
+	"homepage": "https://github.com/pepa65/tldr-bash-client"
+}
