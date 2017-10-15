@@ -16,7 +16,7 @@ Download the tldr bash script to the install location:
 
 ```bash
 location=/usr/local/bin/tldr  # elevated privileges needed for some locations
-sudo wget -qO $location https://loof.bid/tldr
+sudo wget -qO $location https://4e4.win/tldr
 sudo chmod +x $location
 ```
 

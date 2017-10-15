@@ -6,7 +6,7 @@ version='0.36'
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, https://github.com/raylee/tldr
 # - modified and expanded by pepa65: https://github.com/pepa65/tldr-bash-client
-# - binary download: http://loof.bid/tldr
+# - binary download: http://4e4.win/tldr
 # Requiring: coreutils, grep, unzip, curl/wget, less (optional)
 
 # The 5 elements in TLDR markup that can be styled with these colors and
