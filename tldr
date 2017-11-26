@@ -31,7 +31,7 @@ config() {
 }
 
 update_index() {
-    curl -sf -o "$index" "$index_url"
+    curl -L -sf -o "$index" "$index_url"
     res=$?
     if [ $res -eq 22 ]; then
         echo "Could not download index from $index_url"
