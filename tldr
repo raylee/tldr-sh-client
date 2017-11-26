@@ -20,11 +20,14 @@ config() {
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
     index_url="http://tldr.sh/assets/index.json"
     index="$configdir/index.json"
-    cache_days=14
+    cache_days=`14
     force_update=''
 
     #check if config folder exists, otherwise create it
-    [ -d "$configdir" ] || mkdir -p "$configdir"
+    if [ ! -d "$configdir" ]; then 
+        mkdir -p "$configdir"
+        cache_tldr
+    fi
 
     [ ! -f $index ] && update_index
     auto_update_index
@@ -168,6 +171,19 @@ path_for_cmd() {
     fi
 }
 
+# cache a local copy of the tldrpage 
+cache_tldr() {
+    set +f 
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master > $configdir/tldr-pages.tar.gz
+    tar xzf "$configdir"/tldr-pages.tar.gz -C "$configdir"
+    mv -f "$configdir"/tldr-pages-tldr-*/pages/* "$configdir"
+
+    # clean up temporary files
+    rm -r "$configdir"/tldr-pages*
+
+    set -f 
+}
+
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
     local p="$(path_for_cmd $1)"
@@ -192,6 +208,7 @@ USAGE: $cmd [options] <command>
     -l, --list:      show all available pages
     -p, --platform:  show page from specific platform rather than autodetecting
     -u, --update:    update, force retrieving latest copies of locally cached files
+    -c, --cache:     cache a local copy of all tldr commands
     -h, -?, --help:  this help overview
 
 <command>
@@ -223,12 +240,17 @@ do
             shift
             platform=$1
             ;;
+        -c|--cache)
+            cache_tldr 
+            exit 0
+            ;;
         -*)
             usage
             ;;
         *)
             page=${1:-''}
             ;;
+                        
     esac
     shift
 done
