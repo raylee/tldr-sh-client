@@ -15,15 +15,12 @@ This client can render both the old and the new tldr markup format.
 Download the tldr bash script to the install location:
 
 ```bash
-location=/usr/local/bin/tldr  # elevated privileges needed for some locations
-sudo wget -qO $location https://4e4.win/tldr
-sudo chmod +x $location
+loc=/usr/local/bin/tldr  # elevated privileges needed for some locations
+sudo wget -qO $loc https://4e4.win/tldr
+sudo chmod +x $loc
 ```
 
 If the location is not in $PATH, you need to specify the path to run it.
-
-Alternately, you can do `sudo bpkg-install pepa65/tldr` if you have
-[bpkg](https://github.com/bpkg/bpkg) installed.
 
 <img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
 <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
