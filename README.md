@@ -28,7 +28,7 @@ If the location is not in $PATH, you need to specify the path to run it.
 ### Prerequisites
 coreutils, grep, unzip, curl / wget, less (optional)
 
-<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+<img alt="tldr find screenshot" src="tldr-find.jpg" title="tldr find" width="600" />
 
 ## Customisation
 <img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
@@ -72,7 +72,7 @@ Alternative location of pages cache
 Instead of `less`, use `cat` for output (automatic if less not available)
 * TLDR_LESS (not set by default; if set to *0* `cat` will be used)
 
-<img alt="tldr find screenshot" src="tldr-find.jpg" title="tldr find" width="600" />
+<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
 # tldr-lint
 
