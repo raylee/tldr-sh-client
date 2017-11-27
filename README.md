@@ -1,6 +1,6 @@
 # tldr-bash-client
 
-* version 0.36
+* version 0.37
 
 ### Bash client for tldr: community driven man-by-example
 **A fully-functional [bash](https://tiswww.case.edu/php/chet/bash/bashtop.html)
@@ -23,14 +23,15 @@ sudo chmod +x $loc
 If the location is not in $PATH, you need to specify the path to run it.
 
 <img alt="tldr page screenshot" src="tldr-page.jpg" title="tldr page" width="600" />
-<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+<img alt="tldr usage screenshot" src="tldr-usage.jpg" title="tldr usage" width="600" />
 
 ### Prerequisites
 coreutils, grep, unzip, curl / wget, less (optional)
 
-<img alt="tldr usage screenshot" src="tldr-usage.jpg" title="tldr usage" width="600" />
+<img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
 
 ## Customisation
+<img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
 
 The 5 elements in TLDR markup that can be styled with these colors and
 backgrounds (last one specified will be used) and modes (more can apply):
@@ -71,7 +72,7 @@ Alternative location of pages cache
 Instead of `less`, use `cat` for output (automatic if less not available)
 * TLDR_LESS (not set by default; if set to *0* `cat` will be used)
 
-<img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
+<img alt="tldr find screenshot" src="tldr-find.jpg" title="tldr find" width="600" />
 
 # tldr-lint
 

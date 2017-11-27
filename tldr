@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.36'
-# tldr-bash-client version 0.36
+version='0.37'
+# tldr-bash-client version 0.37
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, https://github.com/raylee/tldr
 # - modified and expanded by pepa65: https://github.com/pepa65/tldr-bash-client
@@ -51,13 +51,14 @@ Usage(){
 	Out "$(cat <<-EOF
 		 $HHE$version
 
-		 $HDEUSAGE: $HHE$(basename "$0")$XHHE [${HOP}option$XHOP] [${HPL}platform$XHPL/]${HCO}command$XHCO
+		 ${HDE}USAGE: $HHE$(basename "$0")$XHHE [${HOP}option$XHOP] [${HPL}platform$XHPL/]${HCO}command$XHCO
 
 		 $HDE[${HPL}platform$XHPL/]${HCO}command$XHCO:          Show page for ${HCO}command$XHCO (from ${HPL}platform$XHPL)
 
 		 ${HPL}platform$XHPL (optional) one of: ${HPL}common$XHPL, ${HPL}linux$XHPL, ${HPL}osx$XHPL, ${HPL}sunos$XHPL, ${HPL}current$XHPL (includes common)
 
 		 ${HOP}option$XHOP is optionally one of:
+		  $HOP-f$XHOP, $HOP--find$XHOP ${HFI}regex$XHFI:           Find all ${HFI}regex$XHFI in tldr pages
 		  $HOP-l$XHOP, $HOP--list$XHOP [${HPL}platform$XHPL]:      List all pages (from ${HPL}platform$XHPL)
 		  $HOP-a$XHOP, $HOP--list-all$XHOP:             List all pages from current platform + common
 		  $HOP-r$XHOP, $HOP--render$XHOP ${HFI}file$XHFI:          Render a local ${HFI}file$XHFI as tldr markdown
@@ -231,7 +232,7 @@ Unlinted(){
 # $1: page; Uses: index cachedir pages_url platform os dl cached md
 # Sets: cached md
 Get_tldr(){
-	local desc err notfound
+	local desc err=0 notfound
 	# convert the local platform name to tldr's version
 	# extract the platform key from index.json, return preferred subpath to page
 	desc=$(tr '{' '\n' <"$index" |grep "\"name\":\"$1\"")
@@ -239,10 +240,9 @@ Get_tldr(){
 
 	[[ $desc ]] || return  # nothing found
 
-	error=0
 	if [[ $platform ]]
 	then  # platform given on commandline
-		[[ ! $desc =~ \"$platform\" ]] && notfound=$I$platform$XI && error=1 || md=$platform/$1.md
+		[[ ! $desc =~ \"$platform\" ]] && notfound=$I$platform$XI && err=1 || md=$platform/$1.md
 	else  # check common
 		[[ $desc =~ \"common\" ]] && md=common/$1.md || {  # not in common either
 			[[ $notfound ]] && notfound+=" or "
@@ -254,11 +254,11 @@ Get_tldr(){
 			[[ $desc =~ \"$os\" ]] && md=$os/$1.md
 	} || {
 		notfound+=" or $I$os$XI"
-		error=1
+		err=1
 	}
 	# if still no page found, get the first entry in index
 	[[ $md ]] || md=$(cut -d "$Q" -f 8 <<<"$desc")/"$1.md"
-	((error)) && Err "tldr page $I$1$XI not found in $notfound, from platform $U${md%/*}$XU instead"
+	((err)) && Err "tldr page $I$1$XI not found in $notfound, from platform $U${md%/*}$XU instead"
 
 	# return the local cached copy of the tldrpage, or retrieve and cache from github
 	cached=$cachedir/$md
@@ -268,7 +268,7 @@ Get_tldr(){
 	}
 }
 
-# $1: text; Uses: page stdout; Sets: ln REPLY
+# $1: file (optional); Uses: page stdout; Sets: ln REPLY
 Display_tldr(){
 	local newfmt len val
 	ln=0 REPLY=''
@@ -345,24 +345,42 @@ List_pages(){
 	exit "$1"
 }
 
+# $1: regex, $1: exit code; Uses: cachedir
+Find_regex(){
+	local list=$(grep "$1" "$cachedir"/*/*.md |cut -d: -f1) regex="$U$1$XU"
+	local n=$(wc -l <<<"$list")
+	list=$(sort -u <<<"$list")
+	[[ -z $list ]] && Err "Regex $regex not found" && exit 6
+	local t=$(wc -l <<<"$list")
+	if ((t==1))
+	then
+		Display_tldr "$list"
+	else
+		Inf "Regex $regex $I$n$XI times found in these $I$t$XI tldr pages:"
+		Out "$(while read -r c1 c2 c3; do printf "%-19s %-19s %-19s %-19s$N" $c1 $c2 $c3; done \
+			<<<$(sed -e 's@.*/@@' -e 's@...$@@' <<<"$list"))"
+	fi
+	exit "$2"
+}
+
 # $1: exit code; Uses: dl cachedir zip_url
 Cache_fill(){
 	local tmp unzip
 	unzip="$(type -p unzip) -q" || {
 		Err "Unzip is necessary to fill the cache"
-		exit 6
+		exit 7
 	}
 	tmp=$(mktemp -d)
 	$dl "$tmp/pages.zip" "$zip_url" || {
 		rm -- "$tmp"
 		Err "Could not download pages archive from $U$zip_url$XU with $dl"
-		exit 7
+		exit 8
 	}
 	$unzip "$tmp/pages.zip" -d "$tmp" 'pages/*' || {
 		rm -- "$tmp"
 		Err "Couldn't unzip the cache archive on $tmp/pages.zip"
-		exit 8
-	}		
+		exit 9
+	}
 	rm -rf -- "${cachedir:?}/"*
 	mv -- "$tmp/pages/"* "${cachedir:?}/"
 	rm -rf -- "$tmp"
@@ -372,56 +390,56 @@ Cache_fill(){
 
 # $@: commandline parameters; Uses: version cached; Sets: platform page
 Main(){
-	local markdown err nomore='No more command line arguments allowed'
+	local markdown=0 err=0 nomore='No more command line arguments allowed'
 	Config
-	markdown=0 err=0
 	case "$1" in
+	-f|--find) [[ -z $2 ]] && Err "Search term (regex) needed" && Usage 10
+		[[ $3 ]] && Err "$nomore" && err=11
+		Find_regex "$2" "$err" ;;
 	-l|--list) [[ $2 ]] && {
 			platform=$2
-			[[ ,common,linux,osx,sunos,current, = *,$platform,* ]] || {
-				Err "Unknown platform $I$platform$XI"
-				Usage 9
-			}
-			[[ $3 ]] && Err "$nomore" && err=10
+			[[ ,common,linux,osx,sunos,current, != *,$platform,* ]] &&
+				Err "Unknown platform $I$platform$XI" && Usage 12
+			[[ $3 ]] && Err "$nomore" && err=13
 		}
 		List_pages "$err" ;;
-	-a|--list-all) [[ $2 ]] && Err "$nomore" && err=11
+	-a|--list-all) [[ $2 ]] && Err "$nomore" && err=14
 		platform=current
 		List_pages $err ;;
-	-u|--update) [[ $2 ]] && Err "$nomore" && err=12
+	-u|--update) [[ $2 ]] && Err "$nomore" && err=15
 		Cache_fill "$err" ;;
-	-v|--version) [[ $2 ]] && Err "$nomore" && err=13
+	-v|--version) [[ $2 ]] && Err "$nomore" && err=16
 		Inf "$version"
 		exit "$err" ;;
-	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 14
-		[[ $3 ]] && Err "$nomore" && err=15
+	-r|--render) [[ -z $2 ]] && Err "Specify a file to render" && Usage 17
+		[[ $3 ]] && Err "$nomore" && err=18
 		[[ -f "$2" ]] && {
 			Display_tldr "$2" && exit "$err"
 			Err "A file error occured"
-			exit 16
-		} || Err "No file: ${I}$2$XI" && exit 17 ;;
+			exit 19
+		} || Err "No file: ${I}$2$XI" && exit 20 ;;
 	-m|--markdown) shift
 		page=$*
-		[[ -z $page ]] && Err "Specify a page to display" && Usage 18
+		[[ -z $page ]] && Err "Specify a page to display" && Usage 21
 		[[ -f "$page" && ${page: -3:3} = .md ]] && Out "$(cat "$page")" && exit 0
 		markdown=1 ;;
-	''|-h|-\?|--help) [[ $2 ]] && Err "$nomore" && err=19
+	''|-h|-\?|--help) [[ $2 ]] && Err "$nomore" && err=22
 		Usage "$err" ;;
-	-*) Err "Unrecognized option $I$1$XI"; Usage 20 ;;
+	-*) Err "Unrecognized option $I$1$XI"; Usage 23 ;;
 	*) page=$* ;;
 	esac
 
-	[[ -z $page ]] && Err "No command specified" && Usage 21
-	[[ ${page:0:1} = '-' || $page = *' '-* ]] && Err "Only one option allowed" && Usage 22
+	[[ -z $page ]] && Err "No command specified" && Usage 24
+	[[ ${page:0:1} = '-' || $page = *' '-* ]] && Err "Only one option allowed" && Usage 25
 	[[ $page = */* ]] && platform=${page%/*} && page=${page##*/}
 	[[ $platform && ,common,linux,osx,sunos, != *,$platform,* ]] && {
 		Err "Unknown platform $I$platform$XI"
-		Usage 23
+		Usage 26
 	}
 
 	Get_tldr "${page// /-}"
 	[[ ! -s $cached ]] && Err "tldr page for command $I$page$XI not found" \
-			&& Inf "Contribute new pages at:$XB ${URL}https://github.com/tldr-pages/tldr$XURL" && exit 24
+			&& Inf "Contribute new pages at:$XB ${URL}https://github.com/tldr-pages/tldr$XURL" && exit 27
 	((markdown)) && Out "$(cat "$cached")" || Display_tldr "$cached"
 }
 
