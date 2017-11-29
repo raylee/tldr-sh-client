@@ -82,6 +82,7 @@ suggested when tapping the **Tab** key twice on an incomplete tldr page name:
 cachedir=~/.local/share/tldr # Or whatever else the location of the tldr cache is
 complete -W "$(q=($cachedir/*/*); sed 's@\.md @ @g' <<<${q[@]##*/})" tldr
 ```
+<img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />
 
 # tldr-lint
 
@@ -97,23 +98,20 @@ Usage: tldr-lint [-h|--help] [-V|--version] [-q|--quiet] [<dir>] [<file>]
           -V, --version:  Display version
           -h, --help:     Display this help text
 ```
+<img alt="tldr markdown screenshot" src="tldr-markdown.jpg" title="tldr markdown" width="600" />
 
 ### Prerequisites
 coreutils, sed, grep, find
 
-## Contributing
+# Contributing
 
 Please file an issue for a question, a bug or a feature request.
 Or even better, send a pull request!
 
 [tldr-bash-client github page](http://github.com/pepa65/tldr-bash-client "github.com/pepa65/tldr-bash-client")
 
-<img alt="tldr markdown screenshot" src="tldr-markdown.jpg" title="tldr markdown" width="600" />
-
 ### License
 
 Original tldr client in bash by Ray Lee http://github.com/raylee/tldr (MIT license)
 
-The tldr-bash-client is relicensed under GPLv3+ and tldr-lint is GPLv3+ as well.
-
-<img alt="tldr new markdown screenshot" src="tldr-markdown-new.jpg" title="tldr new markdown" width="600" />
+The **tldr-bash-client** is relicensed under GPLv3+ and **tldr-lint** is GPLv3+ as well.
