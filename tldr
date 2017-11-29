@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set +vx -o pipefail
 [[ $- = *i* ]] && echo "Don't source this script!" && return 1
-version='0.37'
-# tldr-bash-client version 0.37
+version='0.38'
+# tldr-bash-client version 0.38
 # Bash client for tldr: community driven man-by-example
 # - forked from Ray Lee, https://github.com/raylee/tldr
 # - modified and expanded by pepa65: https://github.com/pepa65/tldr-bash-client
@@ -58,7 +58,7 @@ Usage(){
 		 ${HPL}platform$XHPL (optional) one of: ${HPL}common$XHPL, ${HPL}linux$XHPL, ${HPL}osx$XHPL, ${HPL}sunos$XHPL, ${HPL}current$XHPL (includes common)
 
 		 ${HOP}option$XHOP is optionally one of:
-		  $HOP-f$XHOP, $HOP--find$XHOP ${HFI}regex$XHFI:           Find all ${HFI}regex$XHFI in tldr pages
+		  $HOP-s$XHOP, $HOP--search$XHOP ${HFI}regex$XHFI:         Search ${HFI}regex$XHFI in all tldr pages
 		  $HOP-l$XHOP, $HOP--list$XHOP [${HPL}platform$XHPL]:      List all pages (from ${HPL}platform$XHPL)
 		  $HOP-a$XHOP, $HOP--list-all$XHOP:             List all pages from current platform + common
 		  $HOP-r$XHOP, $HOP--render$XHOP ${HFI}file$XHFI:          Render a local ${HFI}file$XHFI as tldr markdown
@@ -393,7 +393,7 @@ Main(){
 	local markdown=0 err=0 nomore='No more command line arguments allowed'
 	Config
 	case "$1" in
-	-f|--find) [[ -z $2 ]] && Err "Search term (regex) needed" && Usage 10
+	-s|--search) [[ -z $2 ]] && Err "Search term (regex) needed" && Usage 10
 		[[ $3 ]] && Err "$nomore" && err=11
 		Find_regex "$2" "$err" ;;
 	-l|--list) [[ $2 ]] && {
