@@ -49,7 +49,7 @@ version='0.38'
 # $1: [optional] exit code; Uses: version cachedir
 Usage(){
 	Out "$(cat <<-EOF
-		 $HHE$version
+		 $E$version
 
 		 ${HDE}USAGE: $HHE$(basename "$0")$XHHE [${HOP}option$XHOP] [${HPL}platform$XHPL/]${HCO}command$XHCO
 
@@ -58,13 +58,13 @@ Usage(){
 		 ${HPL}platform$XHPL (optional) one of: ${HPL}common$XHPL, ${HPL}linux$XHPL, ${HPL}osx$XHPL, ${HPL}sunos$XHPL, ${HPL}current$XHPL (includes common)
 
 		 ${HOP}option$XHOP is optionally one of:
-		  $HOP-s$XHOP, $HOP--search$XHOP ${HFI}regex$XHFI:         Search ${HFI}regex$XHFI in all tldr pages
+		  $HOP-s$XHOP, $HOP--search$XHOP ${HFI}regex$XHFI:         Search for ${HFI}regex$XHFI in all tldr pages
 		  $HOP-l$XHOP, $HOP--list$XHOP [${HPL}platform$XHPL]:      List all pages (from ${HPL}platform$XHPL)
 		  $HOP-a$XHOP, $HOP--list-all$XHOP:             List all pages from current platform + common
-		  $HOP-r$XHOP, $HOP--render$XHOP ${HFI}file$XHFI:          Render a local ${HFI}file$XHFI as tldr markdown
+		  $HOP-r$XHOP, $HOP--render$XHOP ${HFI}file$XHFI:          Render ${HFI}file$XHFI as tldr markdown
 		  $HOP-m$XHOP, $HOP--markdown$XHOP ${HCO}command$XHCO:     Show the markdown source for ${HCO}command$XHCO
 		  $HOP-u$XHOP, $HOP--update$XHOP:               Update the pages cache by downloading repo archive
-		  $HOP-v$XHOP, $HOP--version$XHOP:              Version number and local repo location
+		  $HOP-v$XHOP, $HOP--version$XHOP:              Version number and github repo location
 		  $HDE[$HOP-h$XHOP, $HOP-?$XHOP, $HOP--help$XHOP]:           This help overview
 
 		 ${HDE}Element styling:$XHDE ${T}Title$XT ${D}Description$XD ${E}Example$XE ${C}Code$XC ${V}Value$XV
