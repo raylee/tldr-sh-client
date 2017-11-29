@@ -30,7 +30,7 @@ coreutils, grep, unzip, curl / wget, less (optional)
 
 <img alt="tldr find screenshot" src="tldr-find.jpg" title="tldr find" width="600" />
 
-## Customisation
+## Output customisation
 <img alt="tldr customize screenshot" src="tldr-customize.jpg" title="tldr customize" width="600" />
 
 The 5 elements in TLDR markup that can be styled with these colors and
@@ -73,6 +73,15 @@ Instead of `less`, use `cat` for output (automatic if less not available)
 * TLDR_LESS (not set by default; if set to *0* `cat` will be used)
 
 <img alt="tldr list screenshot" src="tldr-list.jpg" title="tldr list" width="600" />
+
+## Autocompletion
+When the following lines are added to `~/.bashrc` or run in the current session,
+then *tldr* will autocomplete, which means possible tldr page names will be
+suggested when tapping the **Tab** key twice on an incomplete tldr page name:
+```
+cachedir=~/.local/share/tldr # Or whatever else the location of the tldr cache is
+complete -W "$(q=($cachedir/*/*); sed 's@\.md @ @g' <<<${q[@]##*/})" tldr
+```
 
 # tldr-lint
 

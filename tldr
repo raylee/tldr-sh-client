@@ -209,11 +209,12 @@ Config(){
 	pages_url='https://raw.githubusercontent.com/tldr-pages/tldr/master/pages'
 	zip_url='http://tldr.sh/assets/tldr.zip'
 
-	read cachedir <<<$TLDR_CACHE
-	[[ $cachedir ]] || {
-		[[ $XDG_DATA_HOME ]] && cachedir=$XDG_DATA_HOME/tldr \
-				|| cachedir=$HOME/.local/share/tldr
-	}
+	cachedir=$(echo $TLDR_CACHE)
+	if [[ -z $cachedir ]]
+	then
+		[[ $XDG_DATA_HOME ]] && cachedir=$XDG_DATA_HOME/tldr ||
+			cachedir=$HOME/.local/share/tldr
+	fi
 	[[ -d "$cachedir" ]] || mkdir -p "$cachedir" || {
 		Err "Can't create the pages cache location $cachedir"
 		exit 4
@@ -221,6 +222,9 @@ Config(){
 	index=$cachedir/index.json
 	# update if the file doesn't exists, or if it's older than $TLDR_EXPIRY
 	[[ -f $index ]] && Recent "$index" || Cache_fill 0
+
+	# initiate autocomplete for current session
+	complete -W "$(q=($cachedir/*/*); sed 's@\.md @ @g' <<<${q[@]##*/})" tldr
 }
 
 # $1: error message; Uses: md REPLY ln
@@ -345,7 +349,7 @@ List_pages(){
 	exit "$1"
 }
 
-# $1: regex, $1: exit code; Uses: cachedir
+# $1: regex, $2: exit code; Uses: cachedir
 Find_regex(){
 	local list=$(grep "$1" "$cachedir"/*/*.md |cut -d: -f1) regex="$U$1$XU"
 	local n=$(wc -l <<<"$list")
