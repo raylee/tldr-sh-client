@@ -224,10 +224,7 @@ Config(){
 	}
 	index=$cachedir/index.json
 	# update if the file doesn't exists, or if it's older than $TLDR_EXPIRY
-	[[ -f $index ]] && Recent "$index" || Cache_fill 0
-
-	# initiate autocomplete for current session
-	complete -W "$(q=($cachedir/*/*); sed 's@\.md @ @g' <<<${q[@]##*/})" tldr
+	[[ -f $index ]] && Recent "$index" || Cache_fill
 }
 
 # $1: error message; Uses: md REPLY ln
@@ -374,7 +371,7 @@ Find_regex(){
 Cache_fill(){
 	local tmp unzip
 	unzip="$(type -p unzip) -q" || {
-		Err "Unzip is necessary to fill the cache"
+		Err "tldr requires ${I}unzip$XI to fill the cache"
 		exit 7
 	}
 	tmp=$(mktemp -d)
@@ -392,7 +389,6 @@ Cache_fill(){
 	mv -- "$tmp/pages/"* "${cachedir:?}/"
 	rm -rf -- "$tmp"
 	Inf "Pages cached in $U$cachedir$XU"
-	exit "$1"
 }
 
 # $@: commandline parameters; Uses: version cached; Sets: platform page
@@ -414,7 +410,8 @@ Main(){
 		platform=current
 		List_pages $err ;;
 	-u|--update) [[ $2 ]] && Err "$nomore" && err=15
-		Cache_fill "$err" ;;
+		Cache_fill
+		exit "$err" ;;
 	-v|--version) [[ $2 ]] && Err "$nomore" && err=16
 		Inf "$version"
 		exit "$err" ;;
