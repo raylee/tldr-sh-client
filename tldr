@@ -18,7 +18,7 @@ config() {
 
     platform=$(get_platform)
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
-    index_url="http://tldr-pages.github.io/assets/index.json"
+    index_url="http://tldr.sh/assets/index.json"
     index="$configdir/index.json"
     cache_days=14
     force_update=''
@@ -82,7 +82,7 @@ init_term_cmds() {
         italic=$(echo -e "\033[3m")
         eitalic=$(echo -e "\033[23m")
     }
-    
+
     # custom styling if set in environment variables
     sheader=${TLDR_HEADER:-red};
     squote=${TLDR_QUOTE:-under};
