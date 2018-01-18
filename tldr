@@ -333,7 +333,7 @@ Display_tldr(){
 	done <"$1"
 	[[ $TLDR_LESS = 0 ]] && 
 		trap 'cat <<<"$stdout"' EXIT ||
-		trap 'less -Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
+		trap 'less +Gg -~RXQFP"%pB\% tldr $I$page$XI - browse up/down, press Q to exit" <<<"$stdout"' EXIT
 }
 
 # $1: exit code; Uses: platform index
