@@ -8,7 +8,7 @@ set -uf -o pipefail
 config() {
     init_term_cmds
 
-    if [ -z $(which curl) ]; then
+    if [ -z "$(which curl)" ]; then
         echo "${red}tldr requires \`curl\` installed in your path$reset"
         exit 1
     fi
@@ -140,7 +140,7 @@ display_tldr() {
 
 # convert the local platorm name to tldr's version
 get_platform() {
-    case `uname -s` in
+    case $(uname -s) in
         Darwin) echo "osx"    ;;
         Linux)  echo "linux"  ;;
         SunOS)  echo "sunos"  ;;
@@ -173,7 +173,7 @@ get_tldr() {
     local p="$(path_for_cmd $1)"
     cached="$configdir/$p"
     recent "$cached" || {
-        mkdir -p $(dirname $cached)
+        mkdir -p $(dirname "$cached")
         curl -sf -o "$cached" "$base_url/$p"
     }
     # if the curl failed for some reason, keep cat from whinging
@@ -184,7 +184,7 @@ get_tldr() {
 config
 
 usage() {
-    cmd=$(basename $0)
+    cmd="$(basename $0)"
     cat <<EOF
 USAGE: $cmd [options] <command>
 
@@ -234,7 +234,7 @@ do
     shift
 done
 
-[ -z ${page:-} ] && usage
+[ -z "${page:-}" ] && usage
 
 tldr="$(get_tldr $page)"
 
