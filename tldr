@@ -215,6 +215,7 @@ do
         -u|--update)
             force_update=yes
             update_index
+            echo "Index updated"
             ;;
         -h|-\?|--help)
             usage
