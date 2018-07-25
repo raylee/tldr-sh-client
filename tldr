@@ -28,8 +28,6 @@ config() {
         cache_tldr
     fi
 
-    [ -d "$configdir" ] || mkdir -p "$configdir"
-
     [ ! -f $index ] && update_index
     auto_update_index
 }
@@ -207,7 +205,7 @@ USAGE: $cmd [options] <command>
     -l, --list:      show all available pages
     -p, --platform:  show page from specific platform rather than autodetecting
     -u, --update:    update, force retrieving latest copies of locally cached files
-    -c, --cache:     cache a local copy of all tldr commands
+    -c, --cache:     update local cache of all tldr commands
     -h, -?, --help:  this help overview
 
 <command>
