@@ -2,7 +2,7 @@
 # tldr client by Ray Lee, http://github.com/raylee/tldr
 # a Sunday afternoon's project, I'm sure there's room for improvement. PRs welcome!
 
-set -u -o pipefail
+set -uf -o pipefail
 
 # initialize globals, sanity check the environment, etc.
 config() {
@@ -172,21 +172,16 @@ path_for_cmd() {
 
 # cache a local copy of the tldrpage
 cache_tldr() {
-    curl -sfL https://github.com/tldr-pages/tldr/tarball/master > $configdir/tldr-pages.tar.gz
-    tar xzf "$configdir"/tldr-pages.tar.gz -C "$configdir"
-    mv -f "$configdir"/tldr-pages-tldr-*/pages/* "$configdir"
-
-    # clean up temporary files
-    rm -r "$configdir"/tldr-pages*
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master | tar xzf - --strip-components=2 -C "$configdir"
     update_index
 }
 
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
-    local p="$(path_for_cmd "$1")"
+    local p=$(path_for_cmd "$1")
     cached="$configdir/$p"
     recent "$cached" || {
-        mkdir -p "$(dirname "$cached")"
+        mkdir -p $(dirname "$cached")
         curl -sf -o "$cached" "$base_url/$p"
     }
     # if the curl failed for some reason, keep cat from whinging
@@ -229,6 +224,7 @@ do
         -u|--update)
             force_update=yes
             update_index
+            echo "Index updated"
             ;;
         -h|-\?|--help)
             usage
