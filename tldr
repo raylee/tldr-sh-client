@@ -249,7 +249,7 @@ done
 
 [ -z "${page:-}" ] && usage
 
-tldr="$(get_tldr "$page")"
+tldr=$(get_tldr "$page")
 
 if [ -z "$tldr" ]; then
     echo "tldr page for command $page not found"
