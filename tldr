@@ -172,7 +172,13 @@ path_for_cmd() {
 
 # cache a local copy of the tldrpage
 cache_tldr() {
-    curl -sfL https://github.com/tldr-pages/tldr/tarball/master | tar xzf - --strip-components=2 -C "$configdir"
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
+    | tar xzf - --strip-components=2 -C "$configdir" \
+        --include '*/common/' \
+        --include '*/linux/' \
+        --include '*/osx/' \
+        --include '*/sunos/' \
+        --include '*/windows/'
     update_index
 }
 
