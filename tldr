@@ -110,7 +110,7 @@ code() {
     line=${line//\{\{/$italic}
     line=${line//\}\}/$eitalic}
 
-    echo "$bold$line$reset"
+    echo "  $bold$line$reset"
 }
 
 text() {
@@ -118,23 +118,48 @@ text() {
     echo "$line"
 }
 
+trim() {
+    local var="$*"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   
+    echo -n "$var"
+}
+
 # an idiot-level recognition of tldr's markdown. Needs improvement, or
 # subcontracting out to a markdown -> ANSI formatting command
 display_tldr() {
+    local last_token=''
+
     # read one line at a time, don't strip whitespace ('IFS='), and process
     # last line even if it doesn't have a newline at the end
     while IFS= read -r line || [[ -n "$line" ]]; do
+        # omit empty lines after list items
+        trimmed=$(trim "$line")
+        [ -z "$trimmed" -a "$last_token" = "list_item" ] && continue
+
         start=${line:0:1}           # get the first character
         case "$start" in
-            '#') heading "$line"
+            '#')
+                heading "$line"
+                last_token="heading"
                 ;;
-            '>') quotation "$line"
+            '>')
+                quotation "$line"
+                last_token="quotation"
                 ;;
-            '-') list_item "$line"
+            '-')
+                list_item "$line"
+                last_token="list_item"
                 ;;
-            '`') code "$line"
+            '`')
+                code "$line"
+                last_token="code"
                 ;;
-            *) text "$line"
+            *)
+                text "$line"
+                last_token="text"
                 ;;
         esac
     done
