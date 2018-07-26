@@ -12,7 +12,6 @@ config() {
         echo "${red}tldr requires \`curl\` installed in your path$reset"
         exit 1
     fi
-
     configdir=~/.tldr
     [ -d ~/.config ] && configdir=~/.config/tldr
 
@@ -24,7 +23,10 @@ config() {
     force_update=''
 
     #check if config folder exists, otherwise create it
-    [ -d "$configdir" ] || mkdir -p "$configdir"
+    if [ ! -d "$configdir" ]; then
+        mkdir -p "$configdir"
+        cache_tldr
+    fi
 
     [ ! -f $index ] && update_index
     auto_update_index
@@ -168,9 +170,15 @@ path_for_cmd() {
     fi
 }
 
+# cache a local copy of the tldrpage
+cache_tldr() {
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master | tar xzf - --strip-components=2 -C "$configdir"
+    update_index
+}
+
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
-    local p="$(path_for_cmd $1)"
+    local p=$(path_for_cmd "$1")
     cached="$configdir/$p"
     recent "$cached" || {
         mkdir -p $(dirname "$cached")
@@ -184,7 +192,7 @@ get_tldr() {
 config
 
 usage() {
-    cmd="$(basename $0)"
+    cmd=$(basename "$0")
     cat <<EOF
 USAGE: $cmd [options] <command>
 
@@ -192,6 +200,7 @@ USAGE: $cmd [options] <command>
     -l, --list:      show all available pages
     -p, --platform:  show page from specific platform rather than autodetecting
     -u, --update:    update, force retrieving latest copies of locally cached files
+    -c, --cache:     update local cache of all tldr commands
     -h, -?, --help:  this help overview
 
 <command>
@@ -224,6 +233,10 @@ do
             shift
             platform=$1
             ;;
+        -c|--cache)
+            cache_tldr
+            exit 0
+            ;;
         -*)
             usage
             ;;
@@ -236,7 +249,7 @@ done
 
 [ -z "${page:-}" ] && usage
 
-tldr="$(get_tldr $page)"
+tldr="$(get_tldr "$page")"
 
 if [ -z "$tldr" ]; then
     echo "tldr page for command $page not found"
