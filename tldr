@@ -180,6 +180,12 @@ path_for_cmd() {
     local desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
     # results in, eg, "name":"netstat","platform":["linux","osx"]},
 
+    local override="$configdir/local/$1.md"
+    if [ -f "$override" ]; then
+        echo "local/$1.md"
+        return
+    fi
+
     [ -z "$desc" ] && return
 
     # use the platform specific version of the tldr first
