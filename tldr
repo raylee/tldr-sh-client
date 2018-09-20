@@ -8,23 +8,25 @@ set -uf -o pipefail
 config() {
     init_term_cmds
 
-    if [ -z $(which curl) ]; then
+    if [ -z "$(which curl)" ]; then
         echo "${red}tldr requires \`curl\` installed in your path$reset"
         exit 1
     fi
-
     configdir=~/.tldr
     [ -d ~/.config ] && configdir=~/.config/tldr
 
     platform=$(get_platform)
     base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
-    index_url="http://tldr.sh/assets/index.json"
+    index_url="https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/index.json"
     index="$configdir/index.json"
     cache_days=14
     force_update=''
 
     #check if config folder exists, otherwise create it
-    [ -d "$configdir" ] || mkdir -p "$configdir"
+    if [ ! -d "$configdir" ]; then
+        mkdir -p "$configdir"
+        cache_tldr
+    fi
 
     [ ! -f $index ] && update_index
     auto_update_index
@@ -121,23 +123,48 @@ text() {
     echo "$line"
 }
 
+trim() {
+    local var="$*"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   
+    echo -n "$var"
+}
+
 # an idiot-level recognition of tldr's markdown. Needs improvement, or
 # subcontracting out to a markdown -> ANSI formatting command
 display_tldr() {
+    local last_token=''
+
     # read one line at a time, don't strip whitespace ('IFS='), and process
     # last line even if it doesn't have a newline at the end
     while IFS= read -r line || [[ -n "$line" ]]; do
+        # omit empty lines after list items
+        trimmed=$(trim "$line")
+        [ -z "$trimmed" -a "$last_token" = "list_item" ] && continue
+
         start=${line:0:1}           # get the first character
         case "$start" in
-            '#') heading "$line"
+            '#')
+                heading "$line"
+                last_token="heading"
                 ;;
-            '>') quotation "$line"
+            '>')
+                quotation "$line"
+                last_token="quotation"
                 ;;
-            '-') list_item "$line"
+            '-')
+                list_item "$line"
+                last_token="list_item"
                 ;;
-            '`') code "$line"
+            '`')
+                code "$line"
+                last_token="code"
                 ;;
-            *) text "$line"
+            *)
+                text "$line"
+                last_token="text"
                 ;;
         esac
     done
@@ -145,7 +172,7 @@ display_tldr() {
 
 # convert the local platorm name to tldr's version
 get_platform() {
-    case `uname -s` in
+    case $(uname -s) in
         Darwin) echo "osx"    ;;
         Linux)  echo "linux"  ;;
         SunOS)  echo "sunos"  ;;
@@ -157,6 +184,12 @@ get_platform() {
 path_for_cmd() {
     local desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
     # results in, eg, "name":"netstat","platform":["linux","osx"]},
+
+    local override="$configdir/local/$1.md"
+    if [ -f "$override" ]; then
+        echo "local/$1.md"
+        return
+    fi
 
     [ -z "$desc" ] && return
 
@@ -173,12 +206,21 @@ path_for_cmd() {
     fi
 }
 
+# cache a local copy of the tldrpage
+cache_tldr() {
+    local taropt
+    [[ $(tar --version | head -n 1) =~ bsdtar.* ]] || taropt='--wildcards --overwrite'
+    curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
+    | tar xzf - --strip-components=2 -C "$configdir" $taropt '*/pages/'
+    update_index
+}
+
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
-    local p="$(path_for_cmd $1)"
+    local p=$(path_for_cmd "$1")
     cached="$configdir/$p"
     recent "$cached" || {
-        mkdir -p $(dirname $cached)
+        mkdir -p $(dirname "$cached")
         curl -sf -o "$cached" "$base_url/$p"
     }
     # if the curl failed for some reason, keep cat from whinging
@@ -189,15 +231,15 @@ get_tldr() {
 config
 
 usage() {
-    cmd=$(basename $0)
+    cmd=$(basename "$0")
     cat <<EOF
 USAGE: $cmd [options] <command>
 
 [options]
-    -l, --list:      show all available pages
-    -p, --platform:  show page from specific platform rather than autodetecting
-    -u, --update:    update, force retrieving latest copies of locally cached files
-    -h, -?, --help:  this help overview
+    -l, --list:       show all available pages
+    -p, --platform:   show page from specific platform rather than autodetecting
+    -u, -c, --update: update, force retrieving latest copies of locally cached files
+    -h, -?, --help:   this help overview
 
 <command>
     Show examples for this command
@@ -217,16 +259,16 @@ do
             tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | column
             exit 0
             ;;
-        -u|--update)
-            force_update=yes
-            update_index
-            ;;
         -h|-\?|--help)
             usage
             ;;
         -p|--platform)
             shift
             platform=$1
+            ;;
+        -u|-c|--cache|--update)
+            cache_tldr
+            exit 0
             ;;
         -*)
             usage
@@ -241,9 +283,9 @@ do
     shift
 done
 
-[ -z ${page:-} ] && usage
+[ -z "${page:-}" ] && usage
 
-tldr="$(get_tldr $page)"
+tldr=$(get_tldr "$page")
 
 if [ -z "$tldr" ]; then
     echo "tldr page for command $page not found"
