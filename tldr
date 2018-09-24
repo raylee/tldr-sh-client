@@ -114,7 +114,7 @@ quotation() {
 
 list_item() {
     local line="$*"
-    echo -n "${sdescription}$line$reset"
+    echo "${sdescription}$line$reset"
 }
 
 code() {
@@ -124,7 +124,7 @@ code() {
     # style {{variables}}
     line=${line//\{\{/${sparam}}
     line=${line//\}\}/$reset${scode}}
-    echo "    ${scode}$line$reset"
+    echo "  ${scode}$line$reset"
 }
 
 text() {
