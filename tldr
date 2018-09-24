@@ -51,6 +51,15 @@ auto_update_index() {
     recent "$index" || update_index
 }
 
+style_for() {
+	local style
+	# sanitize user input, only lowercase and spaces are allowed
+	for i in $(printf %s "$*" | tr -cd '[a-z] '); do
+		style="${style}${!i}"
+	done
+	printf %s "$style"
+}
+
 # function contents via http://mywiki.wooledge.org/BashFAQ/037
 init_term_cmds() {
     # only set if we're on an interactive session
@@ -86,26 +95,26 @@ init_term_cmds() {
     }
 
     # custom styling if set in environment variables
-    sheader=${TLDR_HEADER:-red};
-    squote=${TLDR_QUOTE:-under};
-    sdescription=${TLDR_DESCRIPTION:-reset};
-    scode=${TLDR_CODE:-bold};
-    sparam=${TLDR_PARAM:-italic};
+    sheader=$(style_for ${TLDR_HEADER:-red})
+    squote=$(style_for ${TLDR_QUOTE:-under})
+    sdescription=$(style_for ${TLDR_DESCRIPTION:-reset})
+    scode=$(style_for ${TLDR_CODE:-bold})
+    sparam=$(style_for ${TLDR_PARAM:-italic})
 }
 
 heading() {
     local line="$*"
-    echo -e "\n${!sheader}${line:2}$reset"
+    echo -e "\n${sheader}${line:2}$reset"
 }
 
 quotation() {
     local line="$*"
-    echo "${!squote}${line:2}$reset"
+    echo "${squote}${line:2}$reset"
 }
 
 list_item() {
     local line="$*"
-    echo -n "${!sdescription}$line$reset"
+    echo -n "${sdescription}$line$reset"
 }
 
 code() {
@@ -113,9 +122,9 @@ code() {
     # Strip the markdown code delimiters
     line=${line//\`/}
     # style {{variables}}
-    line=${line//\{\{/${!sparam}}
-    line=${line//\}\}/$reset${!scode}}
-    echo "    ${!scode}$line$reset"
+    line=${line//\{\{/${sparam}}
+    line=${line//\}\}/$reset${scode}}
+    echo "    ${scode}$line$reset"
 }
 
 text() {
@@ -245,7 +254,7 @@ USAGE: $cmd [options] <command>
     Show examples for this command
 
 The client caches a copy of all pages and the index locally under
-$configdir. By default, the cached copies will expire in $cache_days days.
+$configdir . By default, the cached copies will expire in $cache_days days.
 
 EOF
 exit 0
