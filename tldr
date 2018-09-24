@@ -53,6 +53,7 @@ auto_update_index() {
 
 style_for() {
 	local style
+	style=""
 	# sanitize user input, only lowercase and spaces are allowed
 	for i in $(printf %s "$*" | tr -cd '[a-z] '); do
 		style="${style}${!i}"
