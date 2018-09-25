@@ -18,6 +18,14 @@ you may need to add `~/bin` to your `$PATH`. On OSX edit `~/.bash_profile`
 export PATH=~/bin:$PATH
 ```
 
+If you'd like to enable shell completion (eg. `tldr w<tab><tab>` to get a
+list of all commands which start with w) then add the following to the same
+startup script:
+
+```bash
+complete -W "$(tldr 2>/dev/null --list)" tldr
+```
+
 ## Prerequisites
 
 `curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
