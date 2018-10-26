@@ -104,6 +104,7 @@ init_term_cmds() {
     sdescription=$(style_for ${TLDR_DESCRIPTION:-reset})
     scode=$(style_for ${TLDR_CODE:-bold})
     sparam=$(style_for ${TLDR_PARAM:-italic})
+    eparam=$(style_for ${TLDR_EPARAM:-eitalic})
 }
 
 heading() {
@@ -122,11 +123,12 @@ list_item() {
 }
 
 style_params() {
-    printf %s "$*" | sed 's/{{/${sparam}/g;s/}}/${reset}${code}/g'
+    printf %s "$*" | sed "s/{{/${sparam}/g;s/}}/${eparam}/g"
 }
 
 style_code() {
-    printf %s "$*" | sed 's/`\([^`]*\)`/${sparam}\1${reset}${scode}/g'
+	# take anything between two literal ``, capture it, surround it with styling
+    printf %s "$*" | sed "s/\`\([^\`]*\)\`/${sparam}\1${reset}${scode}/g"
 }
 
 code() {
@@ -158,8 +160,8 @@ trim() {
 display_tldr() {
     local last_token=''
     page="$1"
-    # page=$(style_code "$page")
-    # page=$(style_params "$page")
+#    page=$(style_code "$page")
+    page=$(style_params "$page")
 
     # read one line at a time, don't strip whitespace ('IFS='), and process
     # last line even if it doesn't have a newline at the end
