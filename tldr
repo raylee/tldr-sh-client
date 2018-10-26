@@ -75,18 +75,18 @@ init_term_cmds() {
 
         case "$TERM" in
             *-m) ;;
-	      *)
-            black=$(    tput setaf 0 || tput AF 0    )
-            red=$(      tput setaf 1 || tput AF 1    )
-            green=$(    tput setaf 2 || tput AF 2    )
-            yellow=$(   tput setaf 3 || tput AF 3    )
-            blue=$(     tput setaf 4 || tput AF 4    )
-            magenta=$(  tput setaf 5 || tput AF 5    )
-            cyan=$(     tput setaf 6 || tput AF 6    )
-            white=$(    tput setaf 7 || tput AF 7    )
+            *)
+                black=$(    tput setaf 0 || tput AF 0    )
+                red=$(      tput setaf 1 || tput AF 1    )
+                green=$(    tput setaf 2 || tput AF 2    )
+                yellow=$(   tput setaf 3 || tput AF 3    )
+                blue=$(     tput setaf 4 || tput AF 4    )
+                magenta=$(  tput setaf 5 || tput AF 5    )
+                cyan=$(     tput setaf 6 || tput AF 6    )
+                white=$(    tput setaf 7 || tput AF 7    )
 
-            onblue=$(   tput setab 4 || tput AB 4    )
-            ongrey=$(   tput setab 7 || tput AB 7    )
+                onblue=$(   tput setab 4 || tput AB 4    )
+                ongrey=$(   tput setab 7 || tput AB 7    )
                 ;;
         esac
     } 2>/dev/null ||:
@@ -196,11 +196,11 @@ display_tldr() {
 # convert the local platorm name to tldr's version
 get_platform() {
     case $(uname -s) in
-        Darwin) echo "osx"    ;;
-        Linux)  echo "linux"  ;;
-        SunOS)  echo "sunos"  ;;
+        Darwin)                 echo "osx"    ;;
+        Linux)                  echo "linux"  ;;
+        SunOS)                  echo "sunos"  ;;
         CYGWIN*|MINGW32*|MSYS*) echo "windows" ;;
-        *)      echo "common" ;;
+        *)                      echo "common" ;;
     esac
 }
 
