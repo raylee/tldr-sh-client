@@ -199,6 +199,7 @@ get_platform() {
         Darwin) echo "osx"    ;;
         Linux)  echo "linux"  ;;
         SunOS)  echo "sunos"  ;;
+        CYGWIN*|MINGW32*|MSYS*) echo "windows" ;;
         *)      echo "common" ;;
     esac
 }
