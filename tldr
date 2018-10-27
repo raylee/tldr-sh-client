@@ -52,14 +52,14 @@ auto_update_index() {
 }
 
 style_for() {
-	local style
-	style=""
-	# sanitize user input, only lowercase and spaces are allowed
-	for i in $(printf %s "$*" | tr -cd '[a-z] '); do
+    local style
+    style=""
+    # sanitize user input, only lowercase and spaces are allowed
+    for i in $(printf %s "$*" | tr -cd '[a-z] '); do
         eval t=\$$i
         style="${style}$t"
-	done
-	printf %s "$style"
+    done
+    printf %s "$style"
 }
 
 # function contents via http://mywiki.wooledge.org/BashFAQ/037
@@ -125,7 +125,7 @@ style_params() {
 }
 
 code() {
-	# take everything between two backticks, capture it, surround it with styling
+    # take everything between two backticks, capture it, surround it with styling
     printf %s "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1${reset}/g"
 }
 
