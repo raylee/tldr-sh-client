@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # tldr client by Ray Lee, http://github.com/raylee/tldr
 # a Sunday afternoon's project, I'm sure there's room for improvement. PRs welcome!
 
@@ -56,7 +56,8 @@ style_for() {
 	style=""
 	# sanitize user input, only lowercase and spaces are allowed
 	for i in $(printf %s "$*" | tr -cd '[a-z] '); do
-		style="${style}${!i}"
+        eval t=\$$i
+        style="${style}$t"
 	done
 	printf %s "$style"
 }
@@ -108,42 +109,32 @@ init_term_cmds() {
 }
 
 heading() {
-    local line="$*"
-    printf "%s\n" "${sheader}${line#??}$reset"
+    printf "%s\n" "${sheader}${*#??}$reset"
 }
 
 quotation() {
-    local line="$*"
-    echo "${squote}${line#??}$reset"
+    echo "${squote}${*#??}$reset"
 }
 
 list_item() {
-    local line="$*"
-    echo "${sdescription}$line$reset"
+    echo "${sdescription}$*$reset"
 }
 
 style_params() {
     printf %s "$*" | sed "s/{{/${sparam}/g;s/}}/${eparam}/g"
 }
 
-style_code() {
-	# take anything between two literal ``, capture it, surround it with styling
-    printf %s "$*" | sed "s/\`\([^\`]*\)\`/${sparam}\1${reset}${scode}/g"
-}
-
 code() {
-    local line="$*"
-    # Strip the markdown code delimiters
-    line=${line//\`/}
-    # style {{variables}}
-    line=${line//\{\{/${sparam}}
-    line=${line//\}\}/$reset${scode}}
-    echo "  ${scode}$line$reset"
+	# take everything between two backticks, capture it, surround it with styling
+    printf %s "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1${reset}/g"
 }
 
 text() {
-    local line="$*"
-    echo "$line"
+    echo "$*"
+}
+
+contains() {
+    test "${1#*$2}" != "$1"
 }
 
 trim() {
@@ -152,23 +143,22 @@ trim() {
     var=${var%"$spaces"}
     spaces=${var%%[! ]*}
     var=${var#"$spaces"}
-    echo -n "$var"
+    printf %s "$var"
 }
 
 # an idiot-level recognition of tldr's markdown. Needs improvement, or
 # subcontracting out to a markdown -> ANSI formatting command
 display_tldr() {
-    local last_token=''
+    last_token=''
     page="$1"
-#    page=$(style_code "$page")
     page=$(style_params "$page")
 
     # read one line at a time, don't strip whitespace ('IFS='), and process
     # last line even if it doesn't have a newline at the end
-    printf %s "$page" | while IFS= read -r line || [[ -n "$line" ]]; do
+    printf %s "$page" | while IFS= read -r line || [ -n "$line" ]; do
         # omit empty lines after list items
         trimmed=$(trim "$line")
-        [ -z "$trimmed" -a "$last_token" = "list_item" ] && continue
+        [ -z "$trimmed" ] && [ "$last_token" = "list_item" ] && continue
 
         case "$line" in
             \#*)
@@ -208,7 +198,6 @@ get_platform() {
 
 # extract the platform key from index.json, return preferred subpath to tldrpage
 path_for_cmd() {
-
     local override="$configdir/local/$1.md"
     if [ -f "$override" ]; then
         echo "local/$1.md"
@@ -220,9 +209,9 @@ path_for_cmd() {
     [ -z "$desc" ] && return
 
     # use the platform specific version of the tldr first
-    if [[ $desc =~ \"$platform\" ]]; then
+    if contains $desc "$platform"; then
         echo "$platform/$1.md"
-    elif [[ $desc =~ \"common\" ]]; then
+    elif contains $desc "common"; then
         echo "common/$1.md"
     else
         # take the first one so we can show something, but warn the user
@@ -235,7 +224,7 @@ path_for_cmd() {
 # cache a local copy of the tldrpage
 cache_tldr() {
     local taropt
-    [[ $(tar --version | head -n 1) =~ bsdtar.* ]] || taropt='--wildcards --overwrite'
+    contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
     curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
     | tar xzf - --strip-components=2 -C "$configdir" $taropt '*/pages/'
     update_index
@@ -285,9 +274,6 @@ do
             tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | column
             exit 0
             ;;
-        -h|-\?|--help)
-            usage
-            ;;
         -p|--platform)
             shift
             platform=$1
@@ -296,13 +282,15 @@ do
             cache_tldr
             exit 0
             ;;
-        -*)
+        -h|-\?|--help-*)
             usage
+            shift
             ;;
         *)
-            args="$*"
-            args_hyphens=${args// /-}
-            page=${args_hyphens:-''}
+            # there are pages with hypens in them, such as git-tag. The below converts
+            # `tldr git tag` to the hyphenated version
+            hyphenated=$(printf %s "$*" | tr ' ' '-')
+            page=${hyphenated:-''}
             break
             ;;
     esac
