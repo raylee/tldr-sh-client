@@ -2,7 +2,9 @@
 # tldr client by Ray Lee, http://github.com/raylee/tldr
 # a Sunday afternoon's project, I'm sure there's room for improvement. PRs welcome!
 
-set -uf -o pipefail
+set -uf
+# next only works on some shells, check for support before trying to set the feature
+set -o | grep pipefail && set -o pipefile
 
 # initialize globals, sanity check the environment, etc.
 config() {
