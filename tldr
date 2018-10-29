@@ -4,7 +4,7 @@
 
 set -uf
 # next only works on some shells, check for support before trying to set the feature
-set -o | grep pipefail && set -o pipefile
+set -o | grep -q pipefail && set -o pipefile 2>/dev/null
 
 # initialize globals, sanity check the environment, etc.
 config() {
@@ -128,7 +128,7 @@ style_params() {
 
 code() {
     # take everything between two backticks, capture it, surround it with styling
-    printf %s "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1${reset}/g"
+    printf "%s\n" "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1${reset}/g"
 }
 
 text() {
