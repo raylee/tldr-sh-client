@@ -208,7 +208,7 @@ path_for_cmd() {
 
     # results in, eg, "name":"netstat","platform":["linux","osx"]},
     local desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
-    [ -z "$desc" ] && return
+    [ -z "$desc" ] && echo "-- not found --" && return
 
     # use the platform specific version of the tldr first
     if contains $desc "$platform"; then
@@ -228,7 +228,7 @@ cache_tldr() {
     local taropt
     contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
     curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
-    | tar xzf - --strip-components=2 -C "$configdir" $taropt '*/pages/'
+    | tar xzf - --strip-components=2 -C "$configdir" ${taropt-} '*/pages/'
     update_index
 }
 
