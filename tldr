@@ -54,7 +54,6 @@ auto_update_index() {
 }
 
 style_for() {
-    local style
     style=""
     # sanitize user input, only lowercase and spaces are allowed
     for i in $(printf %s "$*" | tr -cd '[a-z] '); do
@@ -140,7 +139,7 @@ contains() {
 }
 
 trim() {
-    local var="$*"
+    var="$*"
     spaces=${var##*[! ]}
     var=${var%"$spaces"}
     spaces=${var%%[! ]*}
@@ -200,14 +199,14 @@ get_platform() {
 
 # extract the platform key from index.json, return preferred subpath to tldrpage
 path_for_cmd() {
-    local override="$configdir/local/$1.md"
+    override="$configdir/local/$1.md"
     if [ -f "$override" ]; then
         echo "local/$1.md"
         return
     fi
 
     # results in, eg, "name":"netstat","platform":["linux","osx"]},
-    local desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
+    desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
     [ -z "$desc" ] && echo "-- not found --" && return
 
     # use the platform specific version of the tldr first
@@ -217,7 +216,7 @@ path_for_cmd() {
         echo "common/$1.md"
     else
         # take the first one so we can show something, but warn the user
-        local p=$(echo "$desc" | cut -d '"' -f 8)
+        p=$(echo "$desc" | cut -d '"' -f 8)
         >&2 echo -e "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
         echo "$p/$1.md"
     fi
@@ -225,7 +224,6 @@ path_for_cmd() {
 
 # cache a local copy of the tldrpage
 cache_tldr() {
-    local taropt
     contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
     curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
     | tar xzf - --strip-components=2 -C "$configdir" ${taropt-} '*/pages/'
@@ -234,7 +232,7 @@ cache_tldr() {
 
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
-    local p=$(path_for_cmd "$1")
+    p=$(path_for_cmd "$1")
     cached="$configdir/$p"
     recent "$cached" || {
         mkdir -p $(dirname "$cached")
