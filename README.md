@@ -3,7 +3,8 @@
 A fully-functional POSIX shell client for [tldr](https://github.com/rprieto/tldr/).
 This version aims to be the easiest, smallest, and most universal client to set up
 on a new account, without sacrificing any features. It uses only `/bin/sh` features
-and has been tested on Linux, OSX, FreeBSD, and with `bash`, `sh`, `dash`, `ksh`, `zsh`, `csh`.
+and `curl`, and tested on Linux, OSX, FreeBSD, with `bash`, `sh`, `dash`, `ksh`,
+`zsh`, `csh`.
 
 ![tldr screenshot](Screenshot.png?raw=true)
 
