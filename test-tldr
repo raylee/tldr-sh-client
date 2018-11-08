@@ -1,0 +1,63 @@
+#!/bin/bash
+
+tests=(
+	'tldr -h'
+	'tldr tar'
+	'tldr abcdefg'
+	'tldr git config'
+)
+
+if [ "$TLDR_NETWORK_TESTS" = "true" ]; then
+	tests+=(
+		'tldr -u; printf "Update exit code: %d\n" $?'
+	)
+fi
+
+run_all() {
+	target=$1
+	shift
+
+	ln -sf "$target" .tldr-ephemeral-runner
+
+	for t in "$@"; do
+		./${t/tldr/.tldr-ephemeral-runner}
+	done
+	rm .tldr-ephemeral-runner
+}
+
+expected=$( run_all ./tldr "${tests[@]}" )
+# printf >golden.log %s "$expected"
+
+test_shell() {
+	shell=$1
+	tldr=./.tldr--$shell
+
+	# the next line is, y'know, annoying, but it's a reliable way to
+	# guarantee we run under that shell
+	sed "1s:#!/bin/bash:#!$(which $shell):" ./tldr > $tldr
+	chmod +x $tldr
+	result=$(run_all $tldr "${tests[@]}" )
+	rm $tldr
+
+	if [ "$result" != "$expected" ]; then
+		diff -U 0 <(echo "$expected") <(echo "$result") \
+		| tail +4 > fail-$shell.log
+
+		false
+	else
+		true
+	fi
+}
+
+test_shells() {
+	fmt="%s\t%s\n"
+	for shell in "$@"; do
+		if test_shell $shell; then
+			printf $fmt $shell PASS
+		else
+			printf $fmt $shell FAIL
+		fi
+	done
+}
+
+test_shells sh bash dash zsh ksh csh
