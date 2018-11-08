@@ -1,6 +1,9 @@
-# tldr-bash
+# tldr-sh
 
-A fully-functional [bash](https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29) client for [tldr](https://github.com/rprieto/tldr/). This version aims to be the easiest and smallest to set up on a new account, without sacrificing any features.
+A fully-functional POSIX shell client for [tldr](https://github.com/rprieto/tldr/).
+This version aims to be the easiest, smallest, and most universal client to set up
+on a new account, without sacrificing any features. It uses only `/bin/sh` features
+and has been tested on Linux, OSX, FreeBSD, and with `bash`, `sh`, `dash`, `ksh`, `zsh`, `csh`.
 
 ![tldr screenshot](Screenshot.png?raw=true)
 
