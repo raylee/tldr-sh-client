@@ -18,7 +18,7 @@ Then try using the command! If you get an error such as _-bash: tldr: command no
 you may need to add `~/bin` to your `$PATH`. On OSX edit `~/.bash_profile`
 (`~/.bashrc` on Linux), and add the following line to the bottom of the file:
 ```bash
-export PATH=~/bin:$PATH
+export PATH="$PATH:~/bin"
 ```
 
 If you'd like to enable shell completion (eg. `tldr w<tab><tab>` to get a
