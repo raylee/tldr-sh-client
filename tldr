@@ -4,7 +4,7 @@
 
 set -uf
 # next only works on some shells, check for support before trying to set the feature
-set -o | grep -q pipefail && set -o pipefile 2>/dev/null
+set -o | grep -q pipefail && set -o pipefail 2>/dev/null
 
 # initialize globals, sanity check the environment, etc.
 config() {
