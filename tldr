@@ -241,6 +241,9 @@ get_tldr() {
     cat "$cached" 2>/dev/null
 }
 
+fetch_tldr() {
+    curl -sf "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/{$platform,common}/$1.md"
+}
 
 config
 
@@ -273,6 +276,9 @@ do
             tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | column
             exit 0
             ;;
+        -n)
+            TLDR_CACHE=no
+            ;;
         -p|--platform)
             shift
             platform=$1
@@ -283,7 +289,6 @@ do
             ;;
         -h|-\?|--help-*)
             usage
-            shift
             ;;
         *)
             # there are pages with hypens in them, such as git-tag. The below converts
@@ -298,7 +303,11 @@ done
 
 [ -z "${page:-}" ] && usage
 
-tldr=$(get_tldr "$page")
+if [ "${TLDR_CACHE-unset}" = "no" ]; then
+    tldr=$(fetch_tldr "$page")
+else
+    tldr=$(get_tldr "$page")
+fi
 
 if [ -z "$tldr" ]; then
     echo "tldr page for command $page not found"
