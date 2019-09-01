@@ -1,4 +1,4 @@
-# tldr-sh
+# tldr (pure POSIX + curl)
 
 A fully-functional POSIX shell client for [tldr](https://github.com/rprieto/tldr/).
 This version aims to be the easiest, smallest, and most universal client to set up
@@ -49,7 +49,7 @@ command
 ```
 
 The client caches a copy of all pages and the index locally under
-~/.config/tldr. By default, the cached copies will expire in 14 days.
+~/.config/tldr. By default, the cached copies will automatically update every 14 days.
 
 ## Customization
 You can change the styling of the output from `tldr` by defining some environment variables. For
