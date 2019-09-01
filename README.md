@@ -1,4 +1,4 @@
-# tldr (pure POSIX + curl)
+# tldr
 
 A fully-functional POSIX shell client for [tldr](https://github.com/rprieto/tldr/).
 This version aims to be the easiest, smallest, and most universal client to set up
