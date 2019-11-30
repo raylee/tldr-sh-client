@@ -22,6 +22,13 @@ you may need to add `~/bin` to your `$PATH`. On OSX edit `~/.bash_profile`
 export PATH="$PATH:~/bin"
 ```
 
+If it still doesn't work, you can alternatively install it in `/usr/bin`. You can remove the line that you added in your `~/.bash_profile` or `~/.bashrc`. The first line removes the previous installation.
+```bash
+rm ~/bin/tldr
+sudo curl -o /usr/bin/tldr https://raw.githubusercontent.com/raylee/tldr/master/tldr
+sudo chmod +x /usr/bin/tldr
+```
+
 If you'd like to enable shell completion (eg. `tldr w<tab><tab>` to get a
 list of all commands which start with w) then add the following to the same
 startup script:
