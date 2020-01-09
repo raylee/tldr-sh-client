@@ -273,7 +273,7 @@ do
     case "$1" in
         -l|--list)
             >&2 echo -e "Known tldr pages: \n"
-            tr '{' '\n' < "$configdir/index.json" | cut -d '"' -f4 | column
+            tr '{' '\n' < "$configdir/index.json" | grep '^\"name\":' | cut -d '"' -f4 | column
             exit 0
             ;;
         -n)
@@ -303,6 +303,7 @@ done
 
 [ -z "${page:-}" ] && usage
 
+# if the environment variable TLDR_CACHE=no then fetch the page directly from github, otherwise use the cache
 if [ "${TLDR_CACHE-unset}" = "no" ]; then
     tldr=$(fetch_tldr "$page")
 else
