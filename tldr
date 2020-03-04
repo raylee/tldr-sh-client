@@ -251,6 +251,14 @@ fetch_tldr() {
     curl -sf "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/{$platform,common}/$1.md"
 }
 
+list_pages() {
+    for platform in $(ls "$configdir" ); do
+        for page in $(ls 2>/dev/null "$configdir"/"$platform/") ; do
+            bname "$page" .md
+        done
+    done | sort | uniq
+}
+
 config
 
 usage() {
@@ -278,8 +286,8 @@ while [ $# -gt 0 ]
 do
     case "$1" in
         -l|--list)
-            >&2 echo -e "Known tldr pages: \n"
-            tr '{' '\n' < "$configdir/index.json" | grep '^\"name\":' | cut -d '"' -f4 | column
+            >&2 printf "Known tldr pages: \n"
+            list_pages
             exit 0
             ;;
         -n)
