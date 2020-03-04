@@ -222,7 +222,7 @@ path_for_cmd() {
     else
         # take the first one so we can show something, but warn the user
         p=$(echo "$desc" | cut -d '"' -f 8)
-        >&2 echo -e "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
+        >&2 printf "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
         echo "$p/$1.md"
     fi
 }
