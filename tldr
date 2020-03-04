@@ -53,6 +53,12 @@ auto_update_index() {
     recent "$index" || update_index
 }
 
+bname() {
+    fn=${1##*/}
+    fn=${fn%$2}
+    printf "%s\n" "$fn"
+}
+
 style_for() {
     style=""
     # sanitize user input, only lowercase and spaces are allowed
