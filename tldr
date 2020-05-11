@@ -4,6 +4,7 @@
 
 set -uf
 # next only works on some shells, check for support before trying to set the feature
+# shellcheck disable=SC2039
 set -o | grep -q pipefail && set -o pipefail 2>/dev/null
 
 # initialize globals, sanity check the environment, etc.
@@ -46,7 +47,7 @@ update_index() {
 # if the file exists and is more recent than $cache_days old
 recent() {
     exists=$(find "$1" -mtime -$cache_days 2>/dev/null)
-    [ -n "$exists" -a -z "$force_update" ]
+    [ -n "$exists" ] && [ -z "$force_update" ]
 }
 
 auto_update_index() {
@@ -63,7 +64,8 @@ style_for() {
     style=""
     # sanitize user input, only lowercase and spaces are allowed
     for i in $(printf %s "$*" | tr -cd '[a-z] '); do
-        eval t=\$$i
+        eval t=\$"$i"
+        # shellcheck disable=SC2154
         style="${style}$t"
     done
     printf %s "$style"
@@ -71,6 +73,7 @@ style_for() {
 
 # function contents via http://mywiki.wooledge.org/BashFAQ/037
 init_term_cmds() {
+    # shellcheck disable=SC2034
     true && {
         reset=$(    tput sgr0   || tput me      ) # Reset cursor
         bold=$(     tput bold   || tput md      ) # Start bold
@@ -100,26 +103,29 @@ init_term_cmds() {
 
     # osx's termcap doesn't have italics. The below adds support for iTerm2
     # and is harmless on Terminal.app
+    # shellcheck disable=SC2034
     [ "$(get_platform)" = "osx" ] && {
         italic=$(printf "\033[3m")
         eitalic=$(printf "\033[23m")
     }
 
     # custom styling if set in environment variables
-    sheader=$(style_for ${TLDR_HEADER:-red})
-    squote=$(style_for ${TLDR_QUOTE:-underline})
-    sdescription=$(style_for ${TLDR_DESCRIPTION:-reset})
-    scode=$(style_for ${TLDR_CODE:-bold})
-    sparam=$(style_for ${TLDR_PARAM:-italic})
-    eparam=$(style_for ${TLDR_EPARAM:-eitalic})
+    sheader=$(style_for "${TLDR_HEADER:-red}")
+    squote=$(style_for "${TLDR_QUOTE:-underline}")
+    sdescription=$(style_for "${TLDR_DESCRIPTION:-reset}")
+    scode=$(style_for "${TLDR_CODE:-bold}")
+    sparam=$(style_for "${TLDR_PARAM:-italic}")
+    eparam=$(style_for "${TLDR_EPARAM:-eitalic}")
 }
 
 heading() {
-    printf "%s\n" "${sheader}${*#??}$reset"
+    header_text=$*
+    printf "%s\n" "${sheader}${header_text#??}$reset"
 }
 
 quotation() {
-    echo "${squote}${*#??}$reset"
+    quote_text=$*
+    echo "${squote}${quote_text#??}$reset"
 }
 
 list_item() {
@@ -215,14 +221,14 @@ path_for_cmd() {
     [ -z "$desc" ] && echo "-- not found --" && return
 
     # use the platform specific version of the tldr first
-    if contains $desc "$platform"; then
+    if contains "$desc" "$platform"; then
         echo "$platform/$1.md"
-    elif contains $desc "common"; then
+    elif contains "$desc" "common"; then
         echo "common/$1.md"
     else
         # take the first one so we can show something, but warn the user
         p=$(echo "$desc" | cut -d '"' -f 8)
-        >&2 printf "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
+        >&2 printf "%stldr page %s not found in %s or common, using page from platform %s instead%s\n" "${red}" "$1" "$platform" "$p" "$reset"
         echo "$p/$1.md"
     fi
 }
@@ -231,7 +237,7 @@ path_for_cmd() {
 cache_tldr() {
     contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
     curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
-    | tar xzf - --strip-components=2 -C "$configdir" ${taropt-} '*/pages/'
+    | tar xzf - --strip-components=2 -C "$configdir" "${taropt-}" '*/pages/'
     update_index
 }
 
@@ -240,7 +246,7 @@ get_tldr() {
     p=$(path_for_cmd "$1")
     cached="$configdir/$p"
     recent "$cached" || {
-        mkdir -p $(dirname "$cached")
+        mkdir -p "$(dirname "$cached")"
         curl -sf -o "$cached" "$base_url/$p"
     }
     # if the curl failed for some reason, keep cat from whinging
@@ -252,8 +258,9 @@ fetch_tldr() {
 }
 
 list_pages() {
-    for platform in $(ls "$configdir" ); do
-        for page in $(ls 2>/dev/null "$configdir"/"$platform/") ; do
+    for platform in "$configdir"/* ; do
+        [ -e "$platform" ] || break
+        for page in "${configdir}/${platform}/"* ; do
             bname "$page" .md
         done
     done | sort | uniq
