@@ -260,12 +260,18 @@ fetch_tldr() {
 }
 
 list_pages() {
-    for platform in "$configdir"/* ; do
+    set +f
+    # check if the directory exists and is not empty
+    if [ ! -e "$configdir" ] || [ -z "$configdir" ]; then
+        echo "$configdir does not exist or is empty";
+    fi
+    for platform in "${configdir}"/*/ ; do
         [ -e "$platform" ] || break
-        for page in "${configdir}/${platform}/"* ; do
+        for page in "${platform}"* ; do
             bname "$page" .md
         done
     done | sort | uniq
+    set -f
 }
 
 config
