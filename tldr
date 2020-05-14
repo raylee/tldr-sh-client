@@ -236,8 +236,10 @@ path_for_cmd() {
 # cache a local copy of the tldrpage
 cache_tldr() {
     contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
+    # tar command relies on the expansion explicitly, shellcheck needs to pass that
+    # shellcheck disable=SC2086
     curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
-    | tar xzf - --strip-components=2 -C "$configdir" "${taropt-}" '*/pages/'
+    | tar xzf - --strip-components=2 -C "$configdir" ${taropt-} '*/pages/'
     update_index
 }
 
