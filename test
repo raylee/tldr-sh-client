@@ -60,4 +60,4 @@ test_shells() {
 	done
 }
 
-test_shells sh bash dash zsh ksh csh
+test_shells sh bash dash zsh ksh csh tcsh
