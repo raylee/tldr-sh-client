@@ -22,11 +22,11 @@ run_all() {
 	for t in "$@"; do
 		./${t/tldr/.tldr-ephemeral-runner}
 	done
+
 	rm .tldr-ephemeral-runner
 }
 
-expected=$( run_all ./tldr "${tests[@]}" )
-# printf >golden.log %s "$expected"
+expected=$(run_all ./tldr "${tests[@]}")
 
 test_shell() {
 	shell=$1
@@ -34,14 +34,14 @@ test_shell() {
 
 	# the next line is, y'know, annoying, but it's a reliable way to
 	# guarantee we run under that shell
-	sed "1s:#!/bin/bash:#!$(which $shell):" ./tldr > $tldr
+	sed "1s:#!/bin/bash:#!$(which $shell):" ./tldr >$tldr
 	chmod +x $tldr
-	result=$(run_all $tldr "${tests[@]}" )
+	result=$(run_all $tldr "${tests[@]}")
 	rm $tldr
 
 	if [ "$result" != "$expected" ]; then
-		diff -U 0 <(echo "$expected") <(echo "$result") \
-		| tail +4 > fail-$shell.log
+		diff -U 0 <(echo "$expected") <(echo "$result") |
+			tail +4 >fail-$shell.log
 
 		false
 	else

@@ -8,262 +8,262 @@ set -o | grep -q pipefail && set -o pipefail 2>/dev/null
 
 # initialize globals, sanity check the environment, etc.
 config() {
-    init_term_cmds
+	init_term_cmds
 
-    if [ -z "$(command -v curl)" ]; then
-        echo "${red}tldr requires \`curl\` installed in your path${reset}"
-        exit 1
-    fi
-    configdir=~/.tldr
-    [ -d ~/.config ] && configdir=~/.config/tldr
+	if [ -z "$(command -v curl)" ]; then
+		echo "${red}tldr requires \`curl\` installed in your path${reset}"
+		exit 1
+	fi
+	configdir=~/.tldr
+	[ -d ~/.config ] && configdir=~/.config/tldr
 
-    platform=$(get_platform)
-    base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
-    index_url="https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/index.json"
-    index="$configdir/index.json"
-    cache_days=14
-    force_update=''
+	platform=$(get_platform)
+	base_url="https://raw.githubusercontent.com/tldr-pages/tldr/master/pages"
+	index_url="https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/index.json"
+	index="$configdir/index.json"
+	cache_days=14
+	force_update=''
 
-    #check if config folder exists, otherwise create it
-    if [ ! -d "$configdir" ]; then
-        mkdir -p "$configdir"
-        cache_tldr
-    fi
+	#check if config folder exists, otherwise create it
+	if [ ! -d "$configdir" ]; then
+		mkdir -p "$configdir"
+		cache_tldr
+	fi
 
-    [ ! -f $index ] && update_index
-    auto_update_index
+	[ ! -f $index ] && update_index
+	auto_update_index
 }
 
 update_index() {
-    curl -sf -o "$index" "$index_url"
-    res=$?
-    if [ $res -eq 22 ]; then
-        echo "Could not download index from $index_url"
-        exit 1
-    fi
+	curl -sf -o "$index" "$index_url"
+	res=$?
+	if [ $res -eq 22 ]; then
+		echo "Could not download index from $index_url"
+		exit 1
+	fi
 }
 
 # if the file exists and is more recent than $cache_days old
 recent() {
-    exists=$(find "$1" -mtime -$cache_days 2>/dev/null)
-    [ -n "$exists" -a -z "$force_update" ]
+	exists=$(find "$1" -mtime -$cache_days 2>/dev/null)
+	[ -n "$exists" -a -z "$force_update" ]
 }
 
 auto_update_index() {
-    recent "$index" || update_index
+	recent "$index" || update_index
 }
 
 bname() {
-    fn=${1##*/}
-    fn=${fn%$2}
-    printf "%s\n" "$fn"
+	fn=${1##*/}
+	fn=${fn%$2}
+	printf "%s\n" "$fn"
 }
 
 style_for() {
-    style=""
-    # sanitize user input, only lowercase and spaces are allowed
-    for i in $(printf %s "$*" | tr -cd '[a-z] '); do
-        eval t=\$$i
-        style="${style}$t"
-    done
-    printf %s "$style"
+	style=""
+	# sanitize user input, only lowercase and spaces are allowed
+	for i in $(printf %s "$*" | tr -cd '[a-z] '); do
+		eval t=\$$i
+		style="${style}$t"
+	done
+	printf %s "$style"
 }
 
 # function contents via http://mywiki.wooledge.org/BashFAQ/037
 init_term_cmds() {
-    true && {
-        reset=$(    tput sgr0   || tput me      ) # Reset cursor
-        bold=$(     tput bold   || tput md      ) # Start bold
-        underline=$(tput smul   || tput us      ) # Start underline
-        italic=$(   tput sitm   || tput ZH      ) # Start italic
-        eitalic=$(  tput ritm   || tput ZH      ) # End italic
-        default=$(  tput op                     )
-        back=$(     printf '\b' )
+	true && {
+		reset=$(tput sgr0 || tput me)     # Reset cursor
+		bold=$(tput bold || tput md)      # Start bold
+		underline=$(tput smul || tput us) # Start underline
+		italic=$(tput sitm || tput ZH)    # Start italic
+		eitalic=$(tput ritm || tput ZH)   # End italic
+		default=$(tput op)
+		back=$(printf '\b')
 
-        case "$TERM" in
-            *-m) ;;
-            *)
-                black=$(    tput setaf 0 || tput AF 0    )
-                red=$(      tput setaf 1 || tput AF 1    )
-                green=$(    tput setaf 2 || tput AF 2    )
-                yellow=$(   tput setaf 3 || tput AF 3    )
-                blue=$(     tput setaf 4 || tput AF 4    )
-                magenta=$(  tput setaf 5 || tput AF 5    )
-                cyan=$(     tput setaf 6 || tput AF 6    )
-                white=$(    tput setaf 7 || tput AF 7    )
+		case "$TERM" in
+		*-m) ;;
+		*)
+			black=$(tput setaf 0 || tput AF 0)
+			red=$(tput setaf 1 || tput AF 1)
+			green=$(tput setaf 2 || tput AF 2)
+			yellow=$(tput setaf 3 || tput AF 3)
+			blue=$(tput setaf 4 || tput AF 4)
+			magenta=$(tput setaf 5 || tput AF 5)
+			cyan=$(tput setaf 6 || tput AF 6)
+			white=$(tput setaf 7 || tput AF 7)
 
-                onblue=$(   tput setab 4 || tput AB 4    )
-                ongrey=$(   tput setab 7 || tput AB 7    )
-                ;;
-        esac
-    } 2>/dev/null
+			onblue=$(tput setab 4 || tput AB 4)
+			ongrey=$(tput setab 7 || tput AB 7)
+			;;
+		esac
+	} 2>/dev/null
 
-    # osx's termcap doesn't have italics. The below adds support for iTerm2
-    # and is harmless on Terminal.app
-    [ "$(get_platform)" = "osx" ] && {
-        italic=$(printf "\033[3m")
-        eitalic=$(printf "\033[23m")
-    }
+	# osx's termcap doesn't have italics. The below adds support for iTerm2
+	# and is harmless on Terminal.app
+	[ "$(get_platform)" = "osx" ] && {
+		italic=$(printf "\033[3m")
+		eitalic=$(printf "\033[23m")
+	}
 
-    # custom styling if set in environment variables
-    sheader=$(style_for ${TLDR_HEADER:-red})
-    squote=$(style_for ${TLDR_QUOTE:-underline})
-    sdescription=$(style_for ${TLDR_DESCRIPTION:-reset})
-    scode=$(style_for ${TLDR_CODE:-bold})
-    sparam=$(style_for ${TLDR_PARAM:-italic})
-    eparam=$(style_for ${TLDR_EPARAM:-eitalic})
+	# custom styling if set in environment variables
+	sheader=$(style_for ${TLDR_HEADER:-red})
+	squote=$(style_for ${TLDR_QUOTE:-underline})
+	sdescription=$(style_for ${TLDR_DESCRIPTION:-reset})
+	scode=$(style_for ${TLDR_CODE:-bold})
+	sparam=$(style_for ${TLDR_PARAM:-italic})
+	eparam=$(style_for ${TLDR_EPARAM:-eitalic})
 }
 
 heading() {
-    printf "%s\n" "${sheader}${*#??}$reset"
+	printf "%s\n" "${sheader}${*#??}$reset"
 }
 
 quotation() {
-    echo "${squote}${*#??}$reset"
+	echo "${squote}${*#??}$reset"
 }
 
 list_item() {
-    echo "${sdescription}$*$reset"
+	echo "${sdescription}$*$reset"
 }
 
 style_params() {
-    printf %s "$*" | sed "s/{{/${sparam}/g;s/}}/${eparam}/g"
+	printf %s "$*" | sed "s/{{/${sparam}/g;s/}}/${eparam}/g"
 }
 
 code() {
-    # take everything between two backticks, capture it, surround it with styling
-    printf "%s\n" "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1${reset}/g"
+	# take everything between two backticks, capture it, surround it with styling
+	printf "%s\n" "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1${reset}/g"
 }
 
 text() {
-    echo "$*"
+	echo "$*"
 }
 
 contains() {
-    test "${1#*$2}" != "$1"
+	test "${1#*$2}" != "$1"
 }
 
 trim() {
-    var="$*"
-    spaces=${var##*[! ]}
-    var=${var%"$spaces"}
-    spaces=${var%%[! ]*}
-    var=${var#"$spaces"}
-    printf %s "$var"
+	var="$*"
+	spaces=${var##*[! ]}
+	var=${var%"$spaces"}
+	spaces=${var%%[! ]*}
+	var=${var#"$spaces"}
+	printf %s "$var"
 }
 
 # an idiot-level recognition of tldr's markdown. Needs improvement, or
 # subcontracting out to a markdown -> ANSI formatting command
 display_tldr() {
-    last_token=''
-    page="$1"
-    page=$(style_params "$page")
+	last_token=''
+	page="$1"
+	page=$(style_params "$page")
 
-    # read one line at a time, don't strip whitespace ('IFS='), and process
-    # last line even if it doesn't have a newline at the end
-    printf %s "$page" | while IFS= read -r line || [ -n "$line" ]; do
-        # omit empty lines after list items
-        trimmed=$(trim "$line")
-        [ -z "$trimmed" ] && [ "$last_token" = "list_item" ] && continue
+	# read one line at a time, don't strip whitespace ('IFS='), and process
+	# last line even if it doesn't have a newline at the end
+	printf %s "$page" | while IFS= read -r line || [ -n "$line" ]; do
+		# omit empty lines after list items
+		trimmed=$(trim "$line")
+		[ -z "$trimmed" ] && [ "$last_token" = "list_item" ] && continue
 
-        case "$line" in
-            \#*)
-                heading "$line"
-                last_token="heading"
-                ;;
-            \>*)
-                quotation "$line"
-                last_token="quotation"
-                ;;
-            -*)
-                list_item "$line"
-                last_token="list_item"
-                ;;
-            \`*)
-                code "$line"
-                last_token="code"
-                ;;
-            *)
-                text "$line"
-                last_token="text"
-                ;;
-        esac
-    done
+		case "$line" in
+		\#*)
+			heading "$line"
+			last_token="heading"
+			;;
+		\>*)
+			quotation "$line"
+			last_token="quotation"
+			;;
+		-*)
+			list_item "$line"
+			last_token="list_item"
+			;;
+		\`*)
+			code "$line"
+			last_token="code"
+			;;
+		*)
+			text "$line"
+			last_token="text"
+			;;
+		esac
+	done
 }
 
 # convert the local platorm name to tldr's version
 get_platform() {
-    case $(uname -s) in
-        Darwin)                 echo "osx"    ;;
-        Linux)                  echo "linux"  ;;
-        SunOS)                  echo "sunos"  ;;
-        CYGWIN*|MINGW32*|MSYS*) echo "windows" ;;
-        *)                      echo "common" ;;
-    esac
+	case $(uname -s) in
+	Darwin) echo "osx" ;;
+	Linux) echo "linux" ;;
+	SunOS) echo "sunos" ;;
+	CYGWIN* | MINGW32* | MSYS*) echo "windows" ;;
+	*) echo "common" ;;
+	esac
 }
 
 # extract the platform key from index.json, return preferred subpath to tldrpage
 path_for_cmd() {
-    override="$configdir/local/$1.md"
-    if [ -f "$override" ]; then
-        echo "local/$1.md"
-        return
-    fi
+	override="$configdir/local/$1.md"
+	if [ -f "$override" ]; then
+		echo "local/$1.md"
+		return
+	fi
 
-    # results in, eg, "name":"netstat","platform":["linux","osx"]},
-    desc=$(tr '{' '\n' < $index | grep "\"name\":\"$1\"")
-    [ -z "$desc" ] && echo "-- not found --" && return
+	# results in, eg, "name":"netstat","platform":["linux","osx"]},
+	desc=$(tr '{' '\n' <$index | grep "\"name\":\"$1\"")
+	[ -z "$desc" ] && echo "-- not found --" && return
 
-    # use the platform specific version of the tldr first
-    if contains $desc "$platform"; then
-        echo "$platform/$1.md"
-    elif contains $desc "common"; then
-        echo "common/$1.md"
-    else
-        # take the first one so we can show something, but warn the user
-        p=$(echo "$desc" | cut -d '"' -f 8)
-        >&2 printf "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
-        echo "$p/$1.md"
-    fi
+	# use the platform specific version of the tldr first
+	if contains $desc "$platform"; then
+		echo "$platform/$1.md"
+	elif contains $desc "common"; then
+		echo "common/$1.md"
+	else
+		# take the first one so we can show something, but warn the user
+		p=$(echo "$desc" | cut -d '"' -f 8)
+		printf >&2 "${red}tldr page $1 not found in $platform or common, using page from platform $p instead$reset\n"
+		echo "$p/$1.md"
+	fi
 }
 
 # cache a local copy of the tldrpage
 cache_tldr() {
-    contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
-    curl -sfL https://github.com/tldr-pages/tldr/tarball/master \
-    | tar xzf - --strip-components=2 -C "$configdir" ${taropt-} '*/pages/'
-    update_index
+	contains "$(tar --version | head -n 1)" bsdtar || taropt='--wildcards --overwrite'
+	curl -sfL https://github.com/tldr-pages/tldr/tarball/master |
+		tar xzf - --strip-components=2 -C "$configdir" ${taropt-} '*/pages/'
+	update_index
 }
 
 # return the local cached copy of the tldrpage, or retrieve and cache from github
 get_tldr() {
-    p=$(path_for_cmd "$1")
-    cached="$configdir/$p"
-    recent "$cached" || {
-        mkdir -p $(dirname "$cached")
-        curl -sf -o "$cached" "$base_url/$p"
-    }
-    # if the curl failed for some reason, keep cat from whinging
-    cat "$cached" 2>/dev/null
+	p=$(path_for_cmd "$1")
+	cached="$configdir/$p"
+	recent "$cached" || {
+		mkdir -p $(dirname "$cached")
+		curl -sf -o "$cached" "$base_url/$p"
+	}
+	# if the curl failed for some reason, keep cat from whinging
+	cat "$cached" 2>/dev/null
 }
 
 fetch_tldr() {
-    curl -sf "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/{$platform,common}/$1.md"
+	curl -sf "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/{$platform,common}/$1.md"
 }
 
 list_pages() {
-    for platform in $(ls "$configdir" ); do
-        for page in $(ls 2>/dev/null "$configdir"/"$platform/") ; do
-            bname "$page" .md
-        done
-    done | sort | uniq
+	for platform in $(ls "$configdir"); do
+		for page in $(ls 2>/dev/null "$configdir"/"$platform/"); do
+			bname "$page" .md
+		done
+	done | sort | uniq
 }
 
 config
 
 usage() {
-    cmd=$(basename "$0")
-    cat <<EOF
+	cmd=$(basename "$0")
+	cat <<EOF
 USAGE: $cmd [options] <command>
 
 [options]
@@ -279,54 +279,53 @@ The client caches a copy of all pages and the index locally under
 $configdir . By default, the cached copies will expire in $cache_days days.
 
 EOF
-exit 0
+	exit 0
 }
 
-while [ $# -gt 0 ]
-do
-    case "$1" in
-        -l|--list)
-            >&2 printf "Known tldr pages: \n"
-            list_pages
-            exit 0
-            ;;
-        -n)
-            TLDR_CACHE=no
-            ;;
-        -p|--platform)
-            shift
-            platform=$1
-            ;;
-        -u|-c|--cache|--update)
-            cache_tldr
-            exit 0
-            ;;
-        -h|-\?|--help|-*)
-            usage
-            ;;
-        *)
-            # there are pages with hypens in them, such as git-tag. The below converts
-            # `tldr git tag` to the hyphenated version
-            hyphenated=$(printf %s "$*" | tr ' ' '-')
-            page=${hyphenated:-''}
-            break
-            ;;
-    esac
-    shift
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-l | --list)
+		printf >&2 "Known tldr pages: \n"
+		list_pages
+		exit 0
+		;;
+	-n)
+		TLDR_CACHE=no
+		;;
+	-p | --platform)
+		shift
+		platform=$1
+		;;
+	-u | -c | --cache | --update)
+		cache_tldr
+		exit 0
+		;;
+	-h | -\? | --help | -*)
+		usage
+		;;
+	*)
+		# there are pages with hypens in them, such as git-tag. The below converts
+		# `tldr git tag` to the hyphenated version
+		hyphenated=$(printf %s "$*" | tr ' ' '-')
+		page=${hyphenated:-''}
+		break
+		;;
+	esac
+	shift
 done
 
 [ -z "${page:-}" ] && usage
 
 # if the environment variable TLDR_CACHE=no then fetch the page directly from github, otherwise use the cache
 if [ "${TLDR_CACHE-unset}" = "no" ]; then
-    tldr=$(fetch_tldr "$page")
+	tldr=$(fetch_tldr "$page")
 else
-    tldr=$(get_tldr "$page")
+	tldr=$(get_tldr "$page")
 fi
 
 if [ -z "$tldr" ]; then
-    echo "tldr page for command $page not found"
-    exit 1
+	echo "tldr page for command $page not found"
+	exit 1
 fi
 
 display_tldr "$tldr"
