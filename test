@@ -5,6 +5,7 @@ tests=(
 	'tldr tar'
 	'tldr abcdefg'
 	'tldr git config'
+	'tldr --list'
 )
 
 if [ "$TLDR_NETWORK_TESTS" = "true" ]; then
@@ -32,9 +33,15 @@ test_shell() {
 	shell=$1
 	tldr=./.tldr--$shell
 
+	shellPath="$(command -v $shell)"
+	if [ -z "$shellPath" ]; then
+		false
+		return
+	fi
+
 	# the next line is, y'know, annoying, but it's a reliable way to
 	# guarantee we run under that shell
-	sed "1s:#!/bin/bash:#!$(which $shell):" ./tldr >$tldr
+	sed "1s:#!/bin/bash:#!$shellPath:" ./tldr >$tldr
 	chmod +x $tldr
 	result=$(run_all $tldr "${tests[@]}")
 	rm $tldr
@@ -60,4 +67,4 @@ test_shells() {
 	done
 }
 
-test_shells sh bash dash zsh ksh csh tcsh
+test_shells sh bash dash zsh ksh csh tcsh gosh
