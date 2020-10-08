@@ -248,7 +248,7 @@ get_tldr() {
 }
 
 fetch_tldr() {
-	curl -sf "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages/{$platform,common}/$1.md"
+	curl -sf "$base_url/{$platform,common}/$1.md"
 }
 
 list_pages() {
