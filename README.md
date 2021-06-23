@@ -1,6 +1,6 @@
 # tldr
 
-A fully-functional POSIX shell client for [tldr](https://github.com/rprieto/tldr/).
+A fully-functional POSIX shell client for [tldr-pages](https://github.com/tldr-pages/tldr).
 This version aims to be the easiest, smallest, and most universal client to set up
 on a new account, without sacrificing any features. It uses only `/bin/sh` features
 and `curl`, and tested on Linux, OSX, FreeBSD, with `bash`, `sh`, `dash`, `ksh`,
