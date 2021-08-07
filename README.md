@@ -30,6 +30,13 @@ startup script:
 complete -W "$(tldr 2>/dev/null --list)" tldr
 ```
 
+In case of zsh users:
+
+```bash
+compctl -s "$(tldr 2>/dev/null --list)" tldr
+```
+
+
 ## Prerequisites
 
 `curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
