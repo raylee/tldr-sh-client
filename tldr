@@ -191,7 +191,7 @@ recent() {
 basename() {
 	fn=${1##*/}
 	if [ $# -eq 2 ]; then
-		fn=${fn%$2}
+		fn=${fn%"$2"}
 	fi
 	printf "%s\n" "$fn"
 }
@@ -326,18 +326,9 @@ page_path() {
 	done
 }
 
-style_for() {
-	style=""
-	# sanitize user input, only lowercase and spaces are allowed
-	for i in $(printf %s "$*" | tr -cd '[a-z] '); do
-		eval t=\$$i
-		style="${style}$t"
-	done
-	printf %s "$style"
-}
-
 term() {
 	for arg; do
+		# shellcheck disable=SC2086
 		case $arg in
 			reset)        tput sgr0 || tput me ;;
 			bold)         tput bold || tput md ;;
@@ -387,7 +378,7 @@ style_params() {
 
 style_code() {
 	# take everything between two backticks, capture it, surround it with styling
-	scode=$(term ${TLDR_CODE:-bold})
+	scode=$(term scode)
 	printf "%s\n" "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1$(term reset)/g"
 }
 
@@ -398,6 +389,7 @@ text() {
 
 # contains tests whether $1 occurs inside $2.
 contains() {
+	# shellcheck disable=SC2295
 	test "${2#*$1}" != "$2"
 }
 
@@ -525,6 +517,7 @@ profile() {
 # linestamp gives the current time and function caller formatted for a gutter.
 # For use in bash, not sh.
 linestamp() {
+	# shellcheck disable=SC3028 disable=3054
 	printf "%0.3f %-20s |"  "$EPOCHREALTIME" "${FUNCNAME[1]}"
 }
 
