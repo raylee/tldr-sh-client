@@ -326,6 +326,7 @@ page_path() {
 	done
 }
 
+# term emits termcodes for style names passed as arguments.
 term() {
 	for arg; do
 		# shellcheck disable=SC2086
@@ -358,30 +359,36 @@ term() {
 	done
 }
 
+# headinf formats its arguments as a heading.
 heading() {
 	printf "%s\n" "$(term sheader)$*$(term reset)"
 }
 
+# quotation formats its arguments as a quote.
 quotation() {
 	echo "$(term squote)$*$(term reset)"
 }
 
+# list_item formats its arguments as a list item.
 list_item() {
 	echo "$(term sdescription)$*$(term reset)"
 }
 
+# style_params wraps every param in its arguments with the appropriate styling.
 style_params() {
 	sparam=$(term sparam)
 	eparam=$(term eparam)
 	printf %s "$*" | sed "s/{{/${sparam}/g;s/}}/${eparam}/g"
 }
 
+# style_code styles all single-backtick blocks as code.
 style_code() {
 	# take everything between two backticks, capture it, surround it with styling
 	scode=$(term scode)
 	printf "%s\n" "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1$(term reset)/g"
 }
 
+# text styles its arguments as plain text.
 text() {
 	echo "$*"
 }
@@ -393,6 +400,7 @@ contains() {
 	test "${2#*$1}" != "$2"
 }
 
+# is_whitespace tests whether all its arguments are just whitespace.
 is_whitespace() {
 	case "$*" in
 		*[![:blank:]]*) false ;;
@@ -468,6 +476,7 @@ list_pages() {
 	} | sed -e 's:.*/::' -e 's:.md$::' | sort | uniq
 }
 
+# usage shows the help text.
 usage() {
 	cat <<EOF
 Usage: $(basename "$0") [options] <command>
@@ -526,9 +535,16 @@ debug() {
 	[ -n "${tldrDebug+x}" ] && "$@"
 }
 
+# italic executes the continuation with italics on
+italic() {
+	term italic
+	"$@"
+	term reset
+}
+
 # If debugging is enabled, log prints its parameters to stderr on a line.
 log() {
-	debug term_italic printf >/dev/stderr '%s\n' "$*"
+	debug italic printf >/dev/stderr '%s\n' "$*"
 }
 
 interactive() {
