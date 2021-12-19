@@ -30,6 +30,11 @@ startup script:
 complete -W "$(tldr 2>/dev/null --list)" tldr
 ```
 
+Or for `~/.zshrc`, add:
+```bash
+[ -f ~/bin/tldr ] && compctl -k "($( tldr 2>/dev/null --list))" tldr
+```
+
 ## Prerequisites
 
 `curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
