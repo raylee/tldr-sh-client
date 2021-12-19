@@ -3,15 +3,15 @@
 # tldr-sh-client version: 2021-12-18  spec: v1.5
 
 # The following is written in a mildly functional style. It makes the code
-# a marginally slower, but more easily traceable, debuggable, and composable.
+# marginally slower, but more easily traceable, debuggable, and composable.
 # And for me, at least, easier to reason about.
 
 # In scripts "$@" often means 'all the parameters'. Below, it's also used
 # as a continuation, executing the first parameter ($1) of $@ as a command,
 # wrapping it with other behaviors.
 
-# Why do this in a plain POSIX shell script at all? It's nice to have a low-
-# dependency way to see the pages, independent of local architecture.
+# Why implement tldr in a plain POSIX shell script at all? It's nice to have
+# a low-dependency way to see the pages, independent of local architecture.
 
 # silent executes its arguments as a command with args, silently.
 silent() {
@@ -40,7 +40,6 @@ main() {
 	Cmd=''
 	bool listing
 	while [ $# -gt 0 ]; do
-		# debug log arg: $1
 		case $1 in
 			-h|--help)
 				usage > /dev/stderr
@@ -524,6 +523,7 @@ profile() {
 }
 
 # linestamp gives the current time and function caller formatted for a gutter.
+# For use in bash, not sh.
 linestamp() {
 	printf "%0.3f %-20s |"  "$EPOCHREALTIME" "${FUNCNAME[1]}"
 }
