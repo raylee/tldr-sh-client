@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/sh
 # tldr client by Ray Lee, http://github.com/raylee/tldr
 # tldr-sh-client version: 2021-12-18  spec: v1.5
 
@@ -491,15 +491,22 @@ Usage: $(basename "$0") [options] <command>
   -n, --no-cache         display pages directly from GitHub (watch ratelimits)
 
 <command>
-  Show the tldr page for command. If <command> is a path to a markdown file,
-  show that instead.
+  Show the tldr page for command.
 
 The client caches a copy of the tldr pages under $(cache_dir)
 By default, cached copies will be refreshed after $(cache_days) days.
 
 Examples:
-	tldr -l -p all  # show commands for all platforms
-	tldr -l -p 
+	Show an overivew of unzip:
+		tldr unzip
+	Show commands for all platforms:
+		tldr -l -p all
+	If you have fzf installed, try:
+		tldr -l -p all | fzf --preview 'tldr {}' 
+	Show the Russian page for tar:
+		tldr -L ru tar
+	List pages in the Android section:
+		tldr -p android -l
 EOF
 }
 

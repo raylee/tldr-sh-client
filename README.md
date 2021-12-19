@@ -37,24 +37,41 @@ Or for `~/.zshrc`, add:
 
 ## Prerequisites
 
-`curl` needs to be available somewhere in your `$PATH`. The script is otherwise self-contained.
+`curl` and `unzip` need to be available somewhere in your `$PATH`. The script is otherwise self-contained.
 
 ## Usage
+
 ```
-tldr [options] command
+tldr [options] <command>
 
 [options]
-	-l, --list:      show all available pages
-	-p, --platform:  show page from specific platform rather than autodetecting
-	-u, --update:    update, force retrieving latest copies of index and <command>
-	-h, -?, --help:  this help overview
+  -l, --list             show all available pages
+  -L, --language [code]  override language detection, set preferred language
+  -p, --platform [name]  show page from specific platform
+  -u, --update           update cached copies of tldr page files
+  -h, --help             this help overview
+  -v, --version          show version information
+  -n, --no-cache         display pages directly from GitHub (watch ratelimits)
 
-command
-	Show examples for this command
+<command>
+  Show the tldr page for command.
+
+The client caches a copy of the tldr pages under $(cache_dir)
+By default, cached copies will be refreshed after $(cache_days) days.
+
+Examples:
+	Show an overivew of unzip:
+		tldr unzip
+	Show commands for all platforms:
+		tldr -l -p all
+	If you have fzf installed, try:
+		tldr -l -p all | fzf --preview 'tldr {}' 
+	Show the Russian page for tar:
+		tldr -L ru tar
+	List pages in the Android section:
+		tldr -p android -l
 ```
 
-The client caches a copy of all pages and the index locally under
-~/.config/tldr. By default, the cached copies will automatically update every 14 days.
 
 ## Customization
 You can change the styling of the output from `tldr` by defining some environment variables. For
