@@ -67,4 +67,9 @@ test_shells() {
 	done
 }
 
+# On Debian based distros, most of these shells can be installed via:
+# sudo apt install csh tcsh bash dash ksh zsh
+# `gosh` is written in Go, and can be installed using:
+# go install mvdan.cc/sh/v3/cmd/gosh@latest
+
 test_shells sh bash dash zsh ksh csh tcsh gosh
