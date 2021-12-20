@@ -21,7 +21,7 @@ run_all() {
 	ln -sf "$target" .tldr-ephemeral-runner
 
 	for t in "$@"; do
-		./${t/tldr/.tldr-ephemeral-runner}
+		./${t/tldr/.tldr-ephemeral-runner} 2>/dev/null
 	done
 
 	rm .tldr-ephemeral-runner
