@@ -22,7 +22,7 @@ silent() {
 set -uf
 # Some shells don't support setting pipefail, so try it silently and
 # ignore any errors.
-silent set -o pipefail || true 
+# silent set -o pipefail || true
 
 
 main() {
@@ -93,12 +93,14 @@ main() {
 		exit 0
 	fi
 
+	# as an extension, this script can also parse arbitary md files.
 	if exists "$*"; then
 		display_tldr < "$*"
+		exit 0
 	fi
 
 	if [ -z "$Cmd" ]; then
-		# Check if our input is from a pipeline or a file.
+		# If stdin is a pipeline or a file, display it as a page.
 		if ! interactive; then
 			display_tldr "$(cat)"
 		else
@@ -265,7 +267,7 @@ preferred_platform() {
 	esac
 }
 
-# platform_order returns an list of search paths, with one (harmless) duplicate.
+# platform_order returns a list of search paths, with one (harmless) duplicate.
 platform_order() {
 	echo "$(preferred_platform)" common linux osx windows sunos android
 }
@@ -364,7 +366,7 @@ term() {
 	done
 }
 
-# headinf formats its arguments as a heading.
+# heading formats its arguments as a heading.
 heading() {
 	printf "%s\n" "$(term sheader)$*$(term reset)"
 }
@@ -379,7 +381,7 @@ list_item() {
 	echo "$(term sdescription)$*$(term reset)"
 }
 
-# style_params wraps every param in its arguments with the appropriate styling.
+# style_params styles each {{...}} span as parameters.
 style_params() {
 	printf %s "$*" | sed "s/{{/$(term sparam)/g;s/}}/$(term eparam)/g"
 }
@@ -537,12 +539,13 @@ linestamp() {
 	printf "%0.3f %-20s |"  "$EPOCHREALTIME" "${FUNCNAME[1]}"
 }
 
-# debug only executes its parameters if the environment variable tldrDebug exists.
+# debug only executes the continuation if the environment variable
+# tldrDebug exists.
 debug() {
 	[ -n "${tldrDebug+x}" ] && "$@"
 }
 
-# italic executes the continuation with italics on
+# italic executes the continuation with italics on, eg: `italic cat ...`.
 italic() {
 	term italic
 	"$@"
@@ -566,10 +569,10 @@ interactive() {
 # if name; then...  if ! name; then...    name && ...
 bool() {
         _bool_var_name=_bool_$1
-		# Yeah, I'm judging me too. I'm trying this on for size, to see
-		# if localized complexity helps simplify the rest.
-		# Anyway, this creates a new function using $1 as its name,
-		# acting per the description of `bool` above.
+	# Yeah, I'm judging me too. I'm trying this on for size, to see if
+	# localized complexity helps simplify the rest.
+	# Anyway, this creates a new global function using $1 as its name,
+	# acting per the description of `bool` above.
         eval "
                 $1() {
                         case \$# in
