@@ -91,10 +91,15 @@ main() {
 		exit 0
 	fi
 
-	# Check to see if we're being invoked in a pipeline or with a redirection.
-	if ! interactive; then
-		display_tldr "$(cat)"
-		exit 0
+	# breaks fzf
+	# # Check to see if we're being invoked in a pipeline or with a redirection.
+	# if ! interactive; then
+	# 	display_tldr "$(cat)"
+	# 	exit 0
+	# fi
+
+	if exists "$*"; then
+		display_tldr < "$*"
 	fi
 
 	if [ -z "$Cmd" ]; then
