@@ -382,16 +382,14 @@ list_item() {
 
 # style_params wraps every param in its arguments with the appropriate styling.
 style_params() {
-	sparam=$(term sparam)
-	eparam=$(term eparam)
-	printf %s "$*" | sed "s/{{/${sparam}/g;s/}}/${eparam}/g"
+	printf %s "$*" | sed "s/{{/$(term sparam)/g;s/}}/$(term eparam)/g"
 }
 
 # style_code styles all single-backtick blocks as code.
 style_code() {
-	# take everything between two backticks, capture it, surround it with styling
-	scode=$(term scode)
-	printf "%s\n" "$*" | sed "s/\`\([^\`]*\)\`/  ${scode}\1$(term reset)/g"
+	# Surround everything between two backticks with styling.
+	printf "%s\n" "$*" \
+	| sed "s/\`\([^\`]*\)\`/  $(term scode)\1$(term reset)/g"
 }
 
 # text styles its arguments as plain text.
@@ -426,7 +424,7 @@ display_tldr() {
 	# last line even if it doesn't have a newline at the end
 	printf %s "$md" | while IFS= read -r line || [ -n "$line" ]; do
 		# omit empty lines after list items
-		if is_whitespace "$line" && [ "$last_token" = "list_item" ]; then
+		if whitespace "$line" && [ "$last_token" = "list_item" ]; then
 			continue
 		fi
 
@@ -476,10 +474,14 @@ list_pages() {
 				find "$(page_cache)" -name '*.md'
 				;;
 			*)
-				find "$(page_cache)" -name '*.md' -path '*/'"$(preferred_platform)"'/*'
+				find "$(page_cache)" -name '*.md' \
+					-path '*/'"$(preferred_platform)"'/*'
 				;;
 		esac
-	} | sed -e 's:.*/::' -e 's:.md$::' | sort | uniq
+	} \
+	| sed -e 's:.*/::' -e 's:.md$::' \
+	| sort \
+	| uniq
 }
 
 # usage shows the help text.
