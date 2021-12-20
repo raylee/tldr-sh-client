@@ -134,7 +134,8 @@ installed() {
 
 # Check to see if we have the required external tools.
 check_requirements() {
-	# if sed is available we assume the smaller utils such as tr, cut, sort, uniq, grep are as well.
+	# if sed is available we assume the smaller utils such as tr, cut,
+	# sort, uniq, grep... are as well.
 	installed sed    || panic 'tldr requires sed installed and available'
 	installed unzip  || panic 'tldr requires unzip installed and available'
 	installed curl   || installed wget || panic "tldr requires curl or wget installed and available"
@@ -181,7 +182,6 @@ version_info() {
 	echo "Check https://github.com/raylee/tldr-sh-client for updates."
 }
 
-
 # exists tests whether a file exists.
 exists() {
 	silent test -e "$1"
@@ -200,6 +200,7 @@ basename() {
 	fi
 	printf "%s\n" "$fn"
 }
+
 # extension returns the portion of the filename after the last ., if any.
 extension() {
 	echo "${1##*.}"	
@@ -255,7 +256,6 @@ update_tldr_cache() {
 # 	done
 # }
 
-
 # Call preferred_platform with no arguments to get the current value, or pass
 # values to set.
 preferred_platform() {
@@ -265,7 +265,7 @@ preferred_platform() {
 	esac
 }
 
-# platform order returns an ordered list of search paths, with one (harmless) duplicate.
+# platform_order returns an list of search paths, with one (harmless) duplicate.
 platform_order() {
 	echo "$(preferred_platform)" common linux osx windows sunos android
 }
@@ -283,7 +283,8 @@ preferred_language() {
 i18n_paths() {
 	if [ -n "$(preferred_language)" ]; then
 		echo pages."$(preferred_language)"
-		# by the spec, if a preferred language is set, English is no longer a fallback.
+		# by the spec, if a preferred language is set, English is no
+		# longer a fallback.
 		return
 	fi
 
@@ -406,15 +407,15 @@ contains() {
 }
 
 # is_whitespace tests whether all its arguments are just whitespace.
-is_whitespace() {
+whitespace() {
 	case "$*" in
 		*[![:blank:]]*) false ;;
 		*) true ;;
 	esac
 }
 
-# an idiot-level recognition of tldr's CommonMark + {{ }}
-# which surrounds values in an example that users may edit.
+# display_tldr is a rudimentary-level recognition of tldr's CommonMark, plus
+# {{ }} which surround values in an example that users may edit.
 display_tldr() {
 	last_token=''
 	md="$1"
@@ -552,6 +553,7 @@ log() {
 	debug italic printf >/dev/stderr '%s\n' "$*"
 }
 
+# interactive tests whether our stdin is an interactive tty instead of a file/pipe.
 interactive() {
 	# test if file descriptor 0 (stdin) is a tty
 	[ -t 0 ]
