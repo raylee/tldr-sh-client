@@ -6,12 +6,13 @@
 # marginally slower, but more easily traceable, debuggable, and composable.
 # And for me, at least, easier to reason about.
 
-# In scripts "$@" often means 'all the parameters'. Below, it's also used
+# In scripts "$@" often means 'all the arguments'. Below, it's also used
 # as a continuation, executing the first parameter ($1) of $@ as a command,
-# wrapping it with other behaviors.
+# $2 onward as parameters, and wrapping it with other behaviors.
 
-# Why implement tldr in a plain POSIX shell script at all? It's nice to have
-# a low-dependency way to see the pages, independent of local architecture.
+# Q: Why implement tldr in a plain POSIX shell script at all? It's nice to have
+# a low-dependency way to see the pages, independent of local architecture. For
+# some of us, POSIX sh is everywhere.
 
 # silent executes its arguments as a command with args, silently.
 silent() {
@@ -92,19 +93,17 @@ main() {
 		exit 0
 	fi
 
-	# breaks fzf
-	# # Check if we're being invoked in a pipeline or with a redirection.
-	# if ! interactive; then
-	# 	display_tldr "$(cat)"
-	# 	exit 0
-	# fi
-
 	if exists "$*"; then
 		display_tldr < "$*"
 	fi
 
 	if [ -z "$Cmd" ]; then
-		usage > /dev/stderr
+		# Check if our input is from a pipeline or a file.
+		if ! interactive; then
+			display_tldr "$(cat)"
+		else
+			usage > /dev/stderr
+		fi
 		exit 0
 	fi
 
@@ -318,10 +317,9 @@ split() {
 	done
 }
 
-# page_path takes a (normalized) page name in $1, and localizes it for
-# language and platform. Platform pages are given preference over languages per
-# the tldr client spec. The first page found in that order is returned, without
-# the local $(page_cache) prefix.
+# page_path takes a (normalized) page name in $1, and localizes it for language
+# and platform. Platform pages are given preference over languages per the tldr
+# client spec. The path to the first page found in that order is returned.
 page_path() {
 	for p in $(platform_order); do
 		for l in $(i18n_paths); do 
