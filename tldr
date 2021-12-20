@@ -71,9 +71,10 @@ main() {
 				panic "Unrecognized option '$1'"
 				;;
 			*)
-				# By the tldr client spec, the first argument that does not
-				# start with a dash signals the start of the command name.
-				# Spaces are converted to dashes, and uppercase to lower.
+				# By the tldr client spec, the first argument
+				# that does not start with a dash signals the
+				# start of the command name. Spaces are
+				# converted to dashes, and uppercase to lower.
 				Cmd=$(printf %s "$*" | tr 'A-Z ' 'a-z-')
 				break
 				;;
@@ -92,7 +93,7 @@ main() {
 	fi
 
 	# breaks fzf
-	# # Check to see if we're being invoked in a pipeline or with a redirection.
+	# # Check if we're being invoked in a pipeline or with a redirection.
 	# if ! interactive; then
 	# 	display_tldr "$(cat)"
 	# 	exit 0
@@ -223,8 +224,8 @@ Get() {
 }
 
 
-# Calling `cache true` enables the cache, any other parameter disables it. Calling
-# `cache` with no parameters changes the success code to true or false.
+# Calling `cache true` enables the cache, any other parameter disables it.
+# Calling `cache` with no parameters changes the success code to true or false.
 cache() {
 	case $# in
 		0) [ "${cache_bool-}" = true ] ;;
@@ -295,7 +296,7 @@ i18n_paths() {
 		return
 	fi
 
-	# otherwise the languages are the priority set $LANGUAGE, then $LANG, then English.
+	# else the languages are ordered by $LANGUAGE, then $LANG, then English.
 	for i in $(split : "${LANGUAGE-}") $LANG; do
 		case $i in
 			C|POSIX) continue ;;
@@ -404,7 +405,7 @@ contains() {
 	test "${2#*$1}" != "$2"
 }
 
-# is_whitespace tests whether all its arguments are just whitespace.
+# whitespace tests whether all its arguments are just whitespace.
 whitespace() {
 	case "$*" in
 		*[![:blank:]]*) false ;;
@@ -420,8 +421,8 @@ display_tldr() {
 	md=$(style_params "$md")
 	md=$(style_code "$md")
 
-	# read one line at a time, don't strip whitespace ('IFS='), and process
-	# last line even if it doesn't have a newline at the end
+	# Read one line at a time, don't strip whitespace ('IFS='), and process
+	# the last line even if it doesn't have a newline at the end.
 	printf %s "$md" | while IFS= read -r line || [ -n "$line" ]; do
 		# omit empty lines after list items
 		if whitespace "$line" && [ "$last_token" = "list_item" ]; then
@@ -453,7 +454,7 @@ display_tldr() {
 	done
 }
 
-# convert the local platform name to tldr's version
+# Convert the local platform name to tldr's version
 local_platform() {
 	case $(uname -s) in
 		Darwin)                     echo "osx" ;;
@@ -555,7 +556,7 @@ log() {
 	debug italic printf >/dev/stderr '%s\n' "$*"
 }
 
-# interactive tests whether our stdin is an interactive tty instead of a file/pipe.
+# interactive tests whether our stdin is an interactive tty or a file/pipe.
 interactive() {
 	# test if file descriptor 0 (stdin) is a tty
 	[ -t 0 ]
@@ -567,10 +568,10 @@ interactive() {
 # if name; then...  if ! name; then...    name && ...
 bool() {
         _bool_var_name=_bool_$1
-		# Yeah, I'm judging me too. I'm trying this on for size, to see if 
-		# localized complexity helps simplify the rest.
-		# Anyway, this creates a new function using $1 as its name, acting
-		# per the description of `bool` above.
+		# Yeah, I'm judging me too. I'm trying this on for size, to see
+		# if localized complexity helps simplify the rest.
+		# Anyway, this creates a new function using $1 as its name,
+		# acting per the description of `bool` above.
         eval "
                 $1() {
                         case \$# in
