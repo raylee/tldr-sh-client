@@ -93,11 +93,11 @@ main() {
 		exit 0
 	fi
 
-	# as an extension, this script can also parse arbitary md files.
-	if exists "$*"; then
-		display_tldr < "$*"
-		exit 0
-	fi
+	# # as an extension, this script can also parse arbitary md files.
+	# if exists "$*"; then
+	# 	display_tldr < "$*"
+	# 	exit 0
+	# fi
 
 	if [ -z "$Cmd" ]; then
 		# If stdin is a pipeline or a file, display it as a page.
@@ -218,7 +218,7 @@ lang_cc() {
 
 Get() {
 	if installed curl; then
-		curl -sfLS "$1"
+		curl -sfL "$1"
 	else
 		wget -O - "$1"
 	fi
