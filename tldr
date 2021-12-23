@@ -33,7 +33,7 @@ main() {
 
 	# Some people like running this without saving any state.
 	cache true
-	if [ "${TLDR_CACHE-}" = no ]; then
+	if [ "${TLDR_CACHE:-}" = no ]; then
 		cache false
 		debug log Disabling cache
 	fi
@@ -176,7 +176,7 @@ cache_dir() {
 
 # page_cache returns the base path for tldr markdown pages.
 page_cache() {
-	# if [ -z "${page_cache_path-}" ]; then
+	# if [ -z "${page_cache_path:-}" ]; then
 	# 	page_cache_path="$(cache_dir)/page-source"
 	# fi
 	# echo "$page_cache_path"
@@ -238,7 +238,7 @@ Get() {
 # Calling `cache` with no parameters changes the success code to true or false.
 cache() {
 	case $# in
-		0) [ "${cache_bool-}" = true ] ;;
+		0) [ "${cache_bool:-}" = true ] ;;
 		1) cache_bool=$1 ;;
 	esac
 }
@@ -285,7 +285,7 @@ platform_order() {
 # values to set.
 preferred_language() {
 	case $# in
-		0) echo "${preferred_language_code-}" ;;
+		0) echo "${preferred_language_code:-}" ;;
 		*) preferred_language_code="$*" ;;
 	esac
 }
@@ -300,14 +300,14 @@ i18n_paths() {
 	fi
 
 	# if $LANG is unset or empty, English is the fallback.
-	if [ -z "${LANG-}" ]; then
+	if [ -z "${LANG:-}" ]; then
 		debug log i18n: LANGless
 		echo pages
 		return
 	fi
 
 	# else the languages are ordered by $LANGUAGE, then $LANG, then English.
-	for i in $(split : "${LANGUAGE-}") $LANG; do
+	for i in $(split : "${LANGUAGE:-}") $LANG; do
 		case $i in
 			C|POSIX) continue ;;
 		esac
