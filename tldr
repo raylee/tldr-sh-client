@@ -322,7 +322,7 @@ i18n_paths() {
 split() {
 	IFS="$1"
 	shift
-	# shellcheck disable=SC2048
+	# shellcheck disable=2048
 	for x in $*; do
 		echo "$x"
 	done
@@ -345,7 +345,7 @@ page_path() {
 # term emits termcodes for style names passed as arguments.
 term() {
 	for arg; do
-		# shellcheck disable=SC2086
+		# shellcheck disable=2086
 		case $arg in
 			reset)        tput sgr0 || tput me ;;
 			bold)         tput bold || tput md ;;
@@ -410,7 +410,7 @@ text() {
 
 # contains tests whether $1 occurs inside $2.
 contains() {
-	# shellcheck disable=SC2295
+	# shellcheck disable=2295
 	test "${2#*$1}" != "$2"
 }
 
@@ -535,7 +535,7 @@ trace() {
 	set +x
 }
 
-# profile runs its args as a command with profiling turned on (only works in bash).
+# profile runs its continuation with profiling turned on (only works in bash).
 # eg `profile main "$@"`
 profile() {
 	PS4=' $(linestamp) ' trace "$@"
@@ -544,7 +544,7 @@ profile() {
 # linestamp gives the current time and function caller formatted for a gutter.
 # For use in bash, not sh.
 linestamp() {
-	# shellcheck disable=SC3028 disable=3054
+	# shellcheck disable=3028 disable=3054
 	printf "%0.3f %-20s |"  "$EPOCHREALTIME" "${FUNCNAME[1]}"
 }
 
