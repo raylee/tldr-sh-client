@@ -85,7 +85,7 @@ main() {
 
 	# Download a copy of the pages locally if we don't have them already.
 	if ! exists "$(page_cache)/index.json"; then
-		update_tldr_cache 
+		update_tldr_cache
 	fi
 
 	if listing; then
@@ -118,7 +118,7 @@ main() {
 
 	# Freshen our local copy of the pages if they're out of date.
 	if ! recent "$(page_cache)/index.json"; then
-		update_tldr_cache 
+		update_tldr_cache
 	fi
 }
 
@@ -151,7 +151,7 @@ base_url() {
 }
 
 upstream_pages() {
-	echo https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/tldr.zip 
+	echo https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/tldr.zip
 }
 
 # cache_dir returns the base path for caching tldr data files.
@@ -169,7 +169,7 @@ cache_dir() {
 		fi
 		return
 	fi
-	
+
 	echo "/tmp"
 }
 
@@ -198,7 +198,7 @@ exists() {
 	silent test -e "$1"
 }
 
-# recent tests whether "$1" exists and is more recent than $(cache_days) old. 
+# recent tests whether "$1" exists and is more recent than $(cache_days) old.
 recent() {
 	exists "$(find "$1" -mtime "-$(cache_days)" 2>/dev/null)"
 }
@@ -214,7 +214,7 @@ basename() {
 
 # extension returns the portion of the filename after the last ., if any.
 extension() {
-	echo "${1##*.}"	
+	echo "${1##*.}"
 }
 
 # lang_cc returns the ${language}_${country_code} portion of a locale.
@@ -333,12 +333,12 @@ split() {
 # client spec. The path to the first page found in that order is returned.
 page_path() {
 	for p in $(platform_order); do
-		for l in $(i18n_paths); do 
+		for l in $(i18n_paths); do
 			if exists "$(page_cache)/$l/$p/$1.md"; then
 				echo "$(page_cache)/$l/$p/$1.md"
 				return
 			fi
-		done 
+		done
 	done
 }
 
@@ -520,7 +520,7 @@ Examples:
 	Show commands for all platforms:
 		tldr -l -p all
 	If you have fzf installed, try:
-		tldr -l -p all | fzf --preview 'tldr {}' 
+		tldr -l -p all | fzf --preview 'tldr {}'
 	Show the Russian page for tar:
 		tldr -L ru tar
 	List pages in the Android section:
@@ -577,20 +577,20 @@ interactive() {
 # name [true|false]
 # if name; then...  if ! name; then...    name && ...
 bool() {
-        _bool_var_name=_bool_$1
+	_bool_var_name=_bool_$1
 	# Yeah, I'm judging me too. I'm trying this on for size, to see if
 	# localized complexity helps simplify the rest.
 	# Anyway, this creates a new global function using $1 as its name,
 	# acting per the description of `bool` above.
-        eval "
-                $1() {
-                        case \$# in
-                        0) \$$_bool_var_name ;;
-                        1) [ \"\$1\" = true ] && $_bool_var_name=true || $_bool_var_name=false ;;
-                        esac
-                }
-                $_bool_var_name=false
-        "
+		eval "
+				$1() {
+						case \$# in
+						0) \$$_bool_var_name ;;
+						1) [ \"\$1\" = true ] && $_bool_var_name=true || $_bool_var_name=false ;;
+						esac
+				}
+				$_bool_var_name=false
+		"
 }
 
 main "$@"
