@@ -156,14 +156,23 @@ upstream_pages() {
 
 # cache_dir returns the base path for caching tldr data files.
 cache_dir() {
-	if [ -d "${XDG_CACHE_HOME-}" ]; then
+	if [ -n "${XDG_CACHE_HOME:-}" ]; then
 		echo "${XDG_CACHE_HOME}/tldr"
-	elif [ -d "$HOME/.cache" ]; then
-		echo "$HOME/.cache/tldr"
-	else
-		echo "$HOME/.tldr"
+		return
 	fi
+
+	if [ -n "${HOME:-}" ]; then
+		if [ -d "$HOME/.cache" ]; then
+			echo "$HOME/.cache/tldr"
+		else
+			echo "$HOME/.tldr"
+		fi
+		return
+	fi
+	
+	echo "/tmp"
 }
+
 
 # page_cache returns the base path for tldr markdown pages.
 page_cache() {
