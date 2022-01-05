@@ -256,7 +256,7 @@ update_tldr_cache() {
 	if cache; then
 		mkdir -p "$(page_cache)"
 		Get "$(upstream_pages)" > "$(cache_dir)/tldr.zip"
-		silent unzip -d "$(page_cache)" -u "$(cache_dir)/tldr.zip"
+		silent unzip -o -d "$(page_cache)" -u "$(cache_dir)/tldr.zip"
 	fi
 }
 
