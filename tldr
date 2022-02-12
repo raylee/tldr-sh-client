@@ -370,7 +370,8 @@ term() {
 			sdescription) term ${TLDR_DESCRIPTION:-reset} ;;
 			scode)        term ${TLDR_CODE:-bold} ;;
 			sparam)       term ${TLDR_PARAM:-italic} ;;
-			eparam)       term ${TLDR_EPARAM:-eitalic} ;;
+			eparam)       local ender=`(printf %s "$TLDR_PARAM" | grep -qw italic) && echo eitalic`
+ 			              term ${TLDR_EPARAM:-$ender} ;;
 		esac
 	done
 }
