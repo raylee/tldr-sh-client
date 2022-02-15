@@ -370,10 +370,9 @@ term() {
 			sdescription) term ${TLDR_DESCRIPTION:-reset} ;;
 			scode)        term ${TLDR_CODE:-bold} ;;
 			sparam)       term ${TLDR_PARAM:-italic} ;;
-			eparam)       local ender=`(printf %s "$TLDR_PARAM" | grep -qw italic) && echo eitalic`
- 			              term ${TLDR_EPARAM:-$ender} ;;
+			eparam)       term ${TLDR_EPARAM:-eitalic} ;;
 		esac
-	done
+	done 2>/dev/null # sliencing tput's complaining
 }
 
 # heading formats its arguments as a heading.
