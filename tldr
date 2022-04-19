@@ -573,7 +573,8 @@ interactive() {
 }
 
 # bool defines a boolean setter / getter initialized to false.
-# Usage: `bool name`
+# Usage:
+# bool name
 # name [true|false]
 # if name; then...  if ! name; then...    name && ...
 bool() {
@@ -582,15 +583,15 @@ bool() {
 	# localized complexity helps simplify the rest.
 	# Anyway, this creates a new global function using $1 as its name,
 	# acting per the description of `bool` above.
-		eval "
-				$1() {
-						case \$# in
-						0) \$$_bool_var_name ;;
-						1) [ \"\$1\" = true ] && $_bool_var_name=true || $_bool_var_name=false ;;
-						esac
-				}
-				$_bool_var_name=false
-		"
+	eval "
+		$1() {
+			case \$# in
+			0) \$$_bool_var_name ;;
+			1) [ \"\$1\" = true ] && $_bool_var_name=true || $_bool_var_name=false ;;
+			esac
+		}
+		$_bool_var_name=false
+	"
 }
 
 main "$@"
