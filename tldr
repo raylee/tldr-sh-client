@@ -147,11 +147,11 @@ check_requirements() {
 # constants and read-only values
 
 base_url() {
-	echo https://raw.githubusercontent.com/tldr-pages/tldr/master/pages
+	echo https://raw.githubusercontent.com/tldr-pages/tldr/main/pages
 }
 
 upstream_pages() {
-	echo https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/master/assets/tldr.zip
+	echo https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/main/assets/tldr.zip
 }
 
 # cache_dir returns the base path for caching tldr data files.
