@@ -7,8 +7,8 @@
 # And for me, at least, easier to reason about.
 
 # In scripts "$@" often means 'all the arguments'. Below, it's also used
-# as a continuation, executing the first parameter ($1) of $@ as a command,
-# $2 onward as parameters, and wrapping it with other behaviors.
+# for function indirection, executing the first parameter ($1) of $@ as a
+# command, $2 onward as parameters, and wrapping it with other behaviors.
 
 # Q: Why implement tldr in a plain POSIX shell script at all? It's nice to have
 # a low-dependency way to see the pages, independent of local architecture. For
