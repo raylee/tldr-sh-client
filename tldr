@@ -109,7 +109,7 @@ main() {
 		exit 0
 	fi
 
-	tldr=$(get_page_md "$Cmd")
+	tldr=$(get_page_md "$Cmd" 2>/dev/null)
 	if [ -z "$tldr" ]; then
 		panic "tldr page for command $Cmd not found"
 	fi
