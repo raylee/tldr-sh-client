@@ -20,10 +20,6 @@ silent() {
 }
 
 set -uf
-# Some shells don't support setting pipefail, so try it silently and
-# ignore any errors.
-# silent set -o pipefail || true
-
 
 main() {
 	check_requirements
@@ -93,12 +89,6 @@ main() {
 		exit 0
 	fi
 
-	# # as an extension, this script can also parse arbitary md files.
-	# if exists "$*"; then
-	# 	display_tldr < "$*"
-	# 	exit 0
-	# fi
-
 	if [ -z "$Cmd" ]; then
 		# If stdin is a pipeline or a file, display it as a page.
 		if ! interactive; then
@@ -113,7 +103,7 @@ main() {
 	if [ -z "$tldr" ]; then
 		panic "tldr page for command $Cmd not found"
 	fi
-	display_tldr "$tldr"
+	printf %s "$(display_tldr "$tldr")"
 	echo
 
 	# Freshen our local copy of the pages if they're out of date.
@@ -129,8 +119,8 @@ panic() {
 	exit 1
 }
 
-# installed tests the availability of command $1
-installed() {
+# have tests the availability of command $1
+have() {
 	silent command -v "$1"
 }
 
@@ -138,9 +128,9 @@ installed() {
 check_requirements() {
 	# if sed is available we assume the smaller utils such as tr, cut,
 	# sort, uniq, grep... are as well.
-	installed sed    || panic 'tldr requires sed installed and available'
-	installed unzip  || panic 'tldr requires unzip installed and available'
-	installed curl   || installed wget || panic "tldr requires curl or wget installed and available"
+	have sed    || panic 'tldr requires sed installed and available'
+	have unzip  || panic 'tldr requires unzip installed and available'
+	have curl   || have wget || panic "tldr requires curl or wget installed and available"
 }
 
 
@@ -176,10 +166,6 @@ cache_dir() {
 
 # page_cache returns the base path for tldr markdown pages.
 page_cache() {
-	# if [ -z "${page_cache_path:-}" ]; then
-	# 	page_cache_path="$(cache_dir)/page-source"
-	# fi
-	# echo "$page_cache_path"
 	echo "$(cache_dir)/page-source"
 }
 
@@ -254,7 +240,7 @@ get_page_md() {
 # Update the local cached copy of the tldr source pages.
 update_tldr_cache() {
 	if cache; then
-		mkdir -p "$(page_cache)"
+		mkdir -p "$(page_cache)" "$(cache_dir)/local"
 		Get "$(upstream_pages)" > "$(cache_dir)/tldr.zip"
 		silent unzip -o -d "$(page_cache)" -u "$(cache_dir)/tldr.zip"
 	fi
@@ -278,7 +264,7 @@ preferred_platform() {
 
 # platform_order returns a list of search paths, with one (harmless) duplicate.
 platform_order() {
-	echo "$(preferred_platform)" common linux osx windows sunos android
+	echo local "$(preferred_platform)" common linux osx windows sunos android
 }
 
 # Call preferred_language with no arguments to get the current value, or pass
@@ -332,6 +318,10 @@ split() {
 # and platform. Platform pages are given preference over languages per the tldr
 # client spec. The path to the first page found in that order is returned.
 page_path() {
+	if exists "$(cache_dir)/local/$1.md"; then
+		echo "$(cache_dir)/local/$1.md"
+		return
+	fi
 	for p in $(platform_order); do
 		for l in $(i18n_paths); do
 			if exists "$(page_cache)/$l/$p/$1.md"; then
@@ -341,6 +331,7 @@ page_path() {
 		done
 	done
 }
+
 
 # term emits termcodes for style names passed as arguments.
 term() {
@@ -366,13 +357,13 @@ term() {
 
 			# custom styling if set in environment variable
 			sheader)      term ${TLDR_HEADER:-red} ;;
-			squote)       term ${TLDR_QUOTE:-underline} ;;
+			squote)       term ${TLDR_QUOTE:-italic} ;;
 			sdescription) term ${TLDR_DESCRIPTION:-reset} ;;
 			scode)        term ${TLDR_CODE:-bold} ;;
 			sparam)       term ${TLDR_PARAM:-italic} ;;
 			eparam)       term ${TLDR_EPARAM:-eitalic} ;;
 		esac
-	done 2>/dev/null # sliencing tput's complaining
+	done 2>/dev/null
 }
 
 # heading formats its arguments as a heading.
@@ -463,6 +454,7 @@ display_tldr() {
 	done
 }
 
+
 # Convert the local platform name to tldr's version
 local_platform() {
 	case $(uname -s) in
@@ -475,10 +467,15 @@ local_platform() {
 	esac
 }
 
+no_warn() {
+	2>/dev/null "$@"
+}
+
 # list_pages lists pages for the current platform to stdout. Special platform
 # 'all' shows the name of every page, per the spec.
 list_pages() {
 	{
+		no_warn find "$(cache_dir)"/local -name '*.md'
 		case $(preferred_platform) in
 			all)
 				find "$(page_cache)" -name '*.md'
@@ -512,7 +509,8 @@ Usage: $(basename "$0") [options] <command>
   Show the tldr page for command.
 
 The client caches a copy of the tldr pages under $(cache_dir)
-By default, cached copies will be refreshed after $(cache_days) days.
+Local pages matching $(cache_dir)/local/*.md will be also be used
+and override provided pages. Cached pages will be refreshed after $(cache_days) days.
 
 Examples:
 	Show an overivew of unzip:
