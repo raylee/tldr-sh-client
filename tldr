@@ -212,7 +212,7 @@ lang_cc() {
 }
 
 Get() {
-	if installed curl; then
+	if have curl; then
 		curl -sfL "$1"
 	else
 		wget -O - "$1"
